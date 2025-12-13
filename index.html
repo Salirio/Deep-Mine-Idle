@@ -163,6 +163,10 @@
         #dev-depth-btn { position: absolute; bottom: 215px; right: 15px; width: 30px; height: 30px; background: #2c3e50; border: 2px solid #34495e; color: white; font-weight: bold; font-size: 14px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
         #dev-depth-btn:hover { opacity: 1; }
 
+        /* DEV MODE VISIBILITY */
+        .dev-only { display: none !important; }
+        body.dev-mode .dev-only { display: flex !important; }
+
         /* MYSTERY BUBBLE */
         .mystery-bubble {
             position: absolute; width: 60px; height: 60px;
@@ -711,12 +715,12 @@
 
 <!-- DEV BUTTONS -->
 <!-- CHANGED: Depth 400 -> Depth 399 -->
-<div id="dev-depth-btn" onclick="devSetDepth399()">⬇️</div>
-<div id="dev-silk-btn" onclick="devAddSilk()">🧣</div>
-<div id="dev-trophy-btn" onclick="devAddTrophies()">🏆</div>
-<div id="dev-fabric-btn" onclick="devAddFabric()">🧶</div>
-<div id="dev-bubble-btn" onclick="devSpawnBubble()">🫧</div>
-<div id="dev-btn" onclick="devSkip()">DEV SK</div>
+<div id="dev-depth-btn" class="dev-only" onclick="devSetDepth399()">⬇️</div>
+<div id="dev-silk-btn" class="dev-only" onclick="devAddSilk()">🧣</div>
+<div id="dev-trophy-btn" class="dev-only" onclick="devAddTrophies()">🏆</div>
+<div id="dev-fabric-btn" class="dev-only" onclick="devAddFabric()">🧶</div>
+<div id="dev-bubble-btn" class="dev-only" onclick="devSpawnBubble()">🫧</div>
+<div id="dev-btn" class="dev-only" onclick="devSkip()">DEV SK</div>
 
 <!-- Event Center Modal -->
 <div id="event-modal" class="modal-overlay" onclick="if(event.target===this) closeEventCenter()">
@@ -1155,6 +1159,19 @@
 </div>
 
 <script>
+    let devMode = false;
+
+    function updateDevModeUI() {
+        document.body.classList.toggle('dev-mode', devMode);
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.shiftKey && (event.key === 'D' || event.key === 'd')) {
+            devMode = !devMode;
+            updateDevModeUI();
+        }
+    });
+
     // --- AUDIO SYSTEM (BLOCK 1) ---
     const AudioController = {
         ctx: null,
@@ -4787,6 +4804,7 @@
     
     // Start
     document.addEventListener("DOMContentLoaded", () => {
+        updateDevModeUI();
         App.init();
     });
 
@@ -4794,3 +4812,4 @@
 
 </body>
 </html>
+
