@@ -1166,7 +1166,7 @@
     }
 
     document.addEventListener('keydown', (event) => {
-        if (event.ctrlKey && event.shiftKey && (event.key === 'D' || event.key === 'd')) {
+        if (event.ctrlKey && event.altKey && (event.key === 'D' || event.key === 'd')) {
             devMode = !devMode;
             updateDevModeUI();
         }
@@ -4812,4 +4812,5 @@
 
 </body>
 </html>
+
 
