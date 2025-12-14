@@ -2164,7 +2164,7 @@
                 UI.update();
                 return; 
             }
-            const canRollArtifacts = !this.state.isBoss && act.wasTouchedByPlayer && act.depth >= MIN_ARTIFACT_DEPTH && !this.state.activeEvent && this.state.activeWorld !== 'christmas';
+            const canRollArtifacts = !this.state.isBoss && act.wasTouchedByPlayer && act.depth >= MIN_ARTIFACT_DEPTH && this.state.activeWorld !== 'christmas';
 
             // NEW: Artifact Drop Logic
             if (canRollArtifacts) {
@@ -4821,6 +4821,7 @@
 
 </body>
 </html>
+
 
 
 
