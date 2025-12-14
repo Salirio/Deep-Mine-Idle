@@ -1769,7 +1769,11 @@
                 wasTouchedByPlayer: false
             },
             snowflakes: 0,
-            impactX: null, impactY: null, isBoss: false, isLucky: false, cracks: [], lastBgMatIndex: -1
+            impactX: null, impactY: null, isBoss: false, isLucky: false, cracks: [], lastBgMatIndex: -1,
+            // TRACK HP PROGRESSION TO ENFORCE MONOTONIC SCALING
+            lastBlockHp: 1,
+            lastNormalHp: 1,
+            lastBossHp: 5
         },
 
         // --- RESTORED MISSING AVATAR OBJECT ---
@@ -3376,17 +3380,42 @@
 
             GameLogic.state.isLucky = false;
             
+            const prevBlockHp = act.maxHp || 1;
+            const prevNormalHp = this.state.lastNormalHp || prevBlockHp;
+            const prevBossHp = this.state.lastBossHp || prevBlockHp;
+            const blockIndexInStage = (act.depth - 1) % Worlds.STAGE_LENGTH;
+            const microGrowth = 0.005; // Gentle per-block ramp to avoid flat stages
+            const stageBaseHp = mat.hp * loopMultiplier;
+            const normalTargetHp = stageBaseHp * (1 + blockIndexInStage * microGrowth);
+
             if (GameLogic.state.isBoss) {
+                // Boss: explicit peak without per-block scaling, always above prior normals
                 if (GameLogic.state.activeWorld !== 'christmas' || act.depth !== 400) {
-                    act.maxHp = (mat.hp * 5) * loopMultiplier;
+                    const bossFloor = stageBaseHp * (1 + (Worlds.STAGE_LENGTH - 2) * microGrowth);
+                    act.maxHp = Math.max((mat.hp * 5) * loopMultiplier, bossFloor * 1.25);
                 }
                 this.spawnFloater(160, 50, "☠️ BOSS! ☠️", "#e74c3c");
             } else {
                 GameLogic.state.isLucky = Math.random() < 0.05;
-                if(GameLogic.state.isLucky) { act.maxHp = Math.floor((mat.hp * 0.8) * loopMultiplier); this.spawnFloater(160, 50, "🍀 GLÜCK! 🍀", "#f1c40f"); } 
-                else { act.maxHp = mat.hp * loopMultiplier; }
+                if(GameLogic.state.isLucky) { act.maxHp = Math.floor((mat.hp * 0.8) * loopMultiplier); this.spawnFloater(160, 50, "🍀 GLÜCK! 🍀", "#f1c40f"); }
+                else { act.maxHp = normalTargetHp; }
+
+                // Stage-entry clamp: stronger than prior normals but below the previous boss
+                if(blockIndexInStage === 0 && act.depth > 1) {
+                    const minNextStageHp = prevNormalHp * 1.02;
+                    const maxNextStageHp = prevBossHp * 0.98;
+                    act.maxHp = Math.min(Math.max(act.maxHp, minNextStageHp), Math.max(minNextStageHp, maxNextStageHp));
+                }
             }
+
+            // Monotonic safeguard so HP never regresses across blocks or materials
+            const monotonicFloor = prevBlockHp * 1.001;
+            act.maxHp = Math.max(act.maxHp, monotonicFloor);
             act.currentHp = act.maxHp;
+
+            // Persist last values to keep next block scaling safe and ordered
+            this.state.lastBlockHp = act.maxHp;
+            if (GameLogic.state.isBoss) this.state.lastBossHp = act.maxHp; else this.state.lastNormalHp = act.maxHp;
 
             this.blockCtx.clearRect(0,0,320,320);
             let baseColor = GameLogic.state.isLucky ? [255, 215, 0] : mat.color; 
@@ -4838,6 +4867,7 @@
 
 </body>
 </html>
+
 
 
 
