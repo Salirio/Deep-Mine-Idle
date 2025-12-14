@@ -159,6 +159,8 @@
         /* NEW: Silk & Depth Dev Buttons */
         #dev-silk-btn { position: absolute; bottom: 175px; right: 15px; width: 30px; height: 30px; background: #c0392b; border: 2px solid #e74c3c; color: white; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
         #dev-silk-btn:hover { opacity: 1; }
+        #dev-artifact-btn { position: absolute; bottom: 255px; right: 15px; width: 30px; height: 30px; background: #8e44ad; border: 2px solid #9b59b6; color: white; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+        #dev-artifact-btn:hover { opacity: 1; }
         
         #dev-depth-btn { position: absolute; bottom: 215px; right: 15px; width: 30px; height: 30px; background: #2c3e50; border: 2px solid #34495e; color: white; font-weight: bold; font-size: 14px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
         #dev-depth-btn:hover { opacity: 1; }
@@ -720,6 +722,7 @@
 <div id="dev-trophy-btn" class="dev-only" onclick="devAddTrophies()">🏆</div>
 <div id="dev-fabric-btn" class="dev-only" onclick="devAddFabric()">🧶</div>
 <div id="dev-bubble-btn" class="dev-only" onclick="devSpawnBubble()">🫧</div>
+<div id="dev-artifact-btn" class="dev-only" onclick="devForceArtifact()">🏺</div>
 <div id="dev-btn" class="dev-only" onclick="devSkip()">DEV SK</div>
 
 <!-- Event Center Modal -->
@@ -1690,6 +1693,7 @@
             lastClickTime: 0,
 
             activeEvent: null, // 'xmas' or null
+            forceNextArtifactDrop: false, // DEV-ONLY artifact drop override
             // ADDED: volume setting
             settings: { animations: true, volume: 0.3 },
             mine: {
@@ -2165,20 +2169,27 @@
                 return; 
             }
             const canRollArtifacts = !this.state.isBoss && act.wasTouchedByPlayer && act.depth >= MIN_ARTIFACT_DEPTH && this.state.activeWorld !== 'christmas';
+            const forceArtifactDrop = this.state.forceNextArtifactDrop;
 
             // NEW: Artifact Drop Logic
             if (canRollArtifacts) {
+                this.state.forceNextArtifactDrop = false;
+                let forcedApplied = false;
                 Worlds.artifacts.forEach(art => {
                     // Check world and if not already found
                     if(art.world === this.state.activeWorld && !this.state.artifactsFound.includes(art.id)) {
-                        if(Math.random() < art.chance) {
+                        const shouldForce = forceArtifactDrop && !forcedApplied;
+                        if(shouldForce || Math.random() < art.chance) {
                             this.state.artifactsFound.push(art.id);
                             UI.spawnFloater(ex, ey+50, "ARTEFAKT GEFUNDEN!", "#f1c40f");
                             // Modal Popup or Notification could be added here
                             setTimeout(() => alert(`🏺 ARTEFAKT GEFUNDEN: ${art.name}\n${art.bonus}`), 100);
+                            if(shouldForce) forcedApplied = true;
                         }
                     }
                 });
+            } else if (this.state.forceNextArtifactDrop) {
+                this.state.forceNextArtifactDrop = false;
             }
 
             if (this.state.settings.animations) {
@@ -4551,6 +4562,11 @@
             UI.update();
             UI.spawnFloater(window.innerWidth/2, window.innerHeight/2, "+500 🧣", "#fab1a0");
         },
+        // NEW: Force next artifact drop (DEV ONLY)
+        devForceArtifact: function() {
+            GameLogic.state.forceNextArtifactDrop = true;
+            UI.spawnFloater(window.innerWidth/2, window.innerHeight/2, "NEXT 🏺", "#f1c40f");
+        },
         // CHANGED: Set Depth to 399 instead of 400 to trigger boss naturally
         devSetDepth399: function() {
             let act = GameLogic.getActive();
@@ -4640,6 +4656,7 @@
             window.devAddFabric = () => DevTools.devAddFabric();
             window.devAddTrophies = () => DevTools.devAddTrophies();
             window.devAddSilk = () => DevTools.devAddSilk();
+            window.devForceArtifact = () => DevTools.devForceArtifact();
             // CHANGED: Update bridge name
             window.devSetDepth399 = () => DevTools.devSetDepth399();
 
@@ -4821,6 +4838,7 @@
 
 </body>
 </html>
+
 
 
 
