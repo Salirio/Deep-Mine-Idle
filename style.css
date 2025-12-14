@@ -745,3 +745,37 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         height: auto;
     }
 }
+
+/* --- MOBILE SCROLL FIX --- */
+@media (max-width: 900px) {
+    /* 1. FORCE SCROLLING ON THE WHOLE PAGE */
+    body {
+        height: auto !important;       /* Stop forcing 100% height */
+        overflow-y: auto !important;   /* ALLOW SCROLLING */
+        position: relative;            /* Reset positioning */
+    }
+
+    /* 2. UNLOCK THE MAIN CONTAINER */
+    #main-container {
+        height: auto !important;       /* Let it grow as long as needed */
+        overflow: visible !important;  /* Don't cut off content */
+        display: flex;
+        flex-direction: column;        /* Stack: Game first, Shop second */
+        padding-bottom: 50px;          /* Space at bottom for scrolling */
+    }
+
+    /* 3. FIX THE GAME AREA */
+    #left-col {
+        width: 100%;
+        flex: none;                    /* Don't shrink */
+        display: flex;
+        flex-direction: column;
+        align-items: center;           /* Center the game canvas */
+        margin-bottom: 20px;           /* Space between Game and Miners */
+    }
+
+    /* 4. ENSURE CANVAS IS VISIBLE */
+    #game-wrapper {
+        margin: 0 auto;                /* Force center */
+    }
+}
