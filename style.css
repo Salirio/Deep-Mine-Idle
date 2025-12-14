@@ -779,3 +779,49 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         margin: 0 auto;                /* Force center */
     }
 }
+
+/* --- MOBILE BUTTON FIX --- */
+@media (max-width: 900px) {
+    /* 1. Shrink all buttons */
+    .hud-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important; /* Smaller icon */
+        right: 5px !important;      /* Hug the right edge tighter */
+        border-width: 2px !important;
+    }
+
+    /* 2. Squish the Right Column (Remove gaps) */
+    #settings-btn   { top: 10px !important; }
+    #prestige-btn   { top: 48px !important; }
+    #world-btn      { top: 86px !important; }
+    #achieve-btn    { top: 124px !important; }
+    #pet-btn        { top: 162px !important; }
+    #exchange-btn   { top: 200px !important; }
+    #event-shop-btn { top: 238px !important; }
+
+    /* 3. Shrink the Left Side (Avatar & Event) */
+    #avatar-btn {
+        width: 42px !important;
+        height: 42px !important;
+        top: 10px !important;
+        left: 5px !important;
+    }
+    
+    /* Adjust Fabric display under avatar */
+    #fabric-display-container {
+        top: 60px !important;
+        left: 10px !important;
+        width: 32px !important;
+        height: 30px !important;
+        font-size: 10px !important;
+    }
+
+    /* Adjust Gift button */
+    #event-center-btn {
+        top: 100px !important;
+        left: 10px !important;
+        width: 32px !important;
+        height: 32px !important;
+    }
+}
