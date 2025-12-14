@@ -3380,7 +3380,7 @@
 
             GameLogic.state.isLucky = false;
             
-            const prevBlockHp = act.maxHp || 1;
+            const prevBlockHp = this.state.lastBlockHp || act.maxHp || 1;
             const prevNormalHp = this.state.lastNormalHp || prevBlockHp;
             const prevBossHp = this.state.lastBossHp || prevBlockHp;
             const blockIndexInStage = (act.depth - 1) % Worlds.STAGE_LENGTH;
@@ -3404,7 +3404,7 @@
                 if(blockIndexInStage === 0 && act.depth > 1) {
                     const minNextStageHp = prevNormalHp * 1.02;
                     const maxNextStageHp = prevBossHp * 0.98;
-                    act.maxHp = Math.min(Math.max(act.maxHp, minNextStageHp), Math.max(minNextStageHp, maxNextStageHp));
+                    const upperBound = Math.max(minNextStageHp, maxNextStageHp); act.maxHp = Math.min(Math.max(act.maxHp, minNextStageHp), upperBound);
                 }
             }
 
@@ -4867,6 +4867,7 @@
 
 </body>
 </html>
+
 
 
 
