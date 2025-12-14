@@ -1,0 +1,685 @@
+body {
+    background-color: #121212;
+    background-image: none;
+    background-size: 128px 128px;
+    background-repeat: repeat;
+    color: #ecf0f1;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    user-select: none;
+    transition: background-image 0.5s ease-in-out;
+}
+
+body::before {
+    content: "";
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: -1;
+    backdrop-filter: blur(1px);
+}
+
+/* --- XMAS THEME OVERRIDES --- */
+body.theme-xmas .logo-container,
+body.theme-xmas .panel-header,
+body.theme-xmas .modal-content,
+body.theme-xmas #game-wrapper {
+    position: relative;
+}
+
+/* Icicles */
+body.theme-xmas .logo-container::after,
+body.theme-xmas .panel-header::after,
+body.theme-xmas #game-wrapper::after {
+    content: "";
+    position: absolute; top: 100%; left: 0; width: 100%; height: 10px;
+    background: radial-gradient(circle at 10px 0, white 5px, transparent 6px) repeat-x;
+    background-size: 20px 10px;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Snow Overlay */
+#snow-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;
+    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="1" fill="white" opacity="0.5"/><circle cx="50" cy="40" r="2" fill="white" opacity="0.3"/><circle cx="80" cy="20" r="1.5" fill="white" opacity="0.4"/></svg>');
+    animation: snowFall 20s linear infinite;
+    display: none;
+}
+body.theme-xmas #snow-layer { display: block; }
+
+@keyframes snowFall { from { background-position: 0 0; } to { background-position: 50px 100vh; } }
+
+/* --- ARCADE TITLE --- */
+.logo-container {
+    display: flex; alignItems: center; gap: 15px; margin-bottom: 5px;
+    padding: 10px 30px;
+    background: #2c3e50; border: 4px solid #00d2d3; outline: 4px solid #f1c40f;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.5); transform: skew(-3deg);
+    transition: all 0.5s;
+}
+.logo-container.forest { background: #27ae60; border-color: #2ecc71; outline-color: #8e44ad; }
+.logo-container.desert { background: #e67e22; border-color: #f1c40f; outline-color: #d35400; }
+.logo-container.ice { background: #3498db; border-color: #81ecec; outline-color: #0984e3; }
+/* NEW: Christmas World Theme */
+.logo-container.christmas { background: #c0392b; border-color: #27ae60; outline-color: #f1c40f; }
+
+.arcade-title {
+    font-family: 'Press Start 2P', cursive; color: #fff; text-shadow: 4px 4px 0 #e74c3c;
+    font-size: 20px; margin: 0; letter-spacing: 2px; line-height: 1.5;
+}
+
+.logo-icon { font-size: 24px; animation: bounceIcon 0.8s infinite alternate; }
+.logo-icon.right { animation-delay: 0.4s; }
+@keyframes bounceIcon { 0% { transform: translateY(0) rotate(-10deg); } 100% { transform: translateY(-5px) rotate(10deg); } }
+
+/* --- HUD BUTTONS --- */
+.hud-btn {
+    position: absolute;
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 24px; color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    z-index: 100;
+    transition: transform 0.2s, filter 0.2s;
+    border: 2px solid rgba(255,255,255,0.2);
+    background-size: cover;
+}
+.hud-btn:hover { transform: scale(1.1); filter: brightness(1.2); }
+.hud-btn:active { transform: scale(0.95); }
+
+#avatar-btn { top: 15px; left: 15px; width: 64px; height: 64px; border-radius: 50%; background: #2c3e50; border: 3px solid #f1c40f; overflow: hidden; padding: 0; }
+/* CHANGE: Removed image-rendering: pixelated and ensured full size cover */
+#avatar-canvas-icon { width: 100%; height: 100%; }
+
+/* NEW: Fabric Display in Left Column (Uniform Size) */
+#fabric-display-container {
+    position: absolute;
+    top: 95px; /* Below Avatar */
+    left: 22px; /* Aligned with buttons below */
+    width: 50px; /* Same width as HUD buttons */
+    height: 40px; /* Compact height */
+    background: rgba(44, 62, 80, 0.9); /* Dark HUD style */
+    border: 2px solid #aaa;
+    border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; font-weight: bold; font-family: 'Segoe UI', sans-serif;
+    font-size: 11px;
+    z-index: 150; /* CHANGED: Increased Z-Index to be above everything */
+    pointer-events: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    transition: border-color 0.3s; /* Smooth color switch */
+}
+
+/* MOVED DOWN to make space for fabric */
+#event-center-btn { top: 155px; left: 22px; width: 50px; height: 50px; background: #c0392b; border: 2px solid #e74c3c; animation: pulseRed 2s infinite; }
+
+#settings-btn { top: 15px; right: 15px; background: #34495e; }
+#prestige-btn { top: 80px; right: 15px; background: #8e44ad; animation: pulsePrestige 2s infinite; }
+#world-btn { top: 145px; right: 15px; background: #27ae60; }
+#world-btn.locked { filter: grayscale(1); opacity: 0.7; cursor: not-allowed; }
+
+/* NEW: Achievements Button */
+#achieve-btn { top: 210px; right: 15px; background: #f39c12; border: 2px solid #fff; }
+
+/* NEW: Pet Button */
+#pet-btn { top: 275px; right: 15px; background: #9b59b6; border: 2px solid #fff; }
+
+/* NEW: Exchange Button */
+#exchange-btn { top: 340px; right: 15px; background: #34495e; border: 2px solid #95a5a6; }
+
+#event-shop-btn { top: 405px; right: 15px; background: #3498db; border: 2px solid #fff; display: none; }
+
+/* DEV BUTTONS */
+#dev-btn { position: absolute; bottom: 15px; right: 15px; width: 80px; height: 30px; background: #e74c3c; border: 2px solid #c0392b; color: white; font-weight: bold; font-size: 10px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+#dev-btn:hover { opacity: 1; }
+#dev-bubble-btn { position: absolute; bottom: 55px; right: 15px; width: 30px; height: 30px; background: #3498db; border: 2px solid #2980b9; color: white; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+#dev-bubble-btn:hover { opacity: 1; }
+/* NEW: Fabric Dev Button */
+#dev-fabric-btn { position: absolute; bottom: 95px; right: 15px; width: 30px; height: 30px; background: #95a5a6; border: 2px solid #7f8c8d; color: white; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+#dev-fabric-btn:hover { opacity: 1; }
+
+/* NEW: Trophy Dev Button */
+#dev-trophy-btn { position: absolute; bottom: 135px; right: 15px; width: 30px; height: 30px; background: #f1c40f; border: 2px solid #f39c12; color: white; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+#dev-trophy-btn:hover { opacity: 1; }
+
+/* NEW: Silk & Depth Dev Buttons */
+#dev-silk-btn { position: absolute; bottom: 175px; right: 15px; width: 30px; height: 30px; background: #c0392b; border: 2px solid #e74c3c; color: white; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+#dev-silk-btn:hover { opacity: 1; }
+#dev-artifact-btn { position: absolute; bottom: 255px; right: 15px; width: 30px; height: 30px; background: #8e44ad; border: 2px solid #9b59b6; color: white; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+#dev-artifact-btn:hover { opacity: 1; }
+
+/* NEW: Jump 100 Dev Button */
+#dev-jump-btn { position: absolute; bottom: 295px; right: 15px; width: 30px; height: 30px; background: #e67e22; border: 2px solid #d35400; color: white; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+#dev-jump-btn:hover { opacity: 1; }
+
+#dev-depth-btn { position: absolute; bottom: 215px; right: 15px; width: 30px; height: 30px; background: #2c3e50; border: 2px solid #34495e; color: white; font-weight: bold; font-size: 14px; cursor: pointer; z-index: 200; display: flex; justify-content: center; align-items: center; border-radius: 4px; opacity: 0.5; }
+#dev-depth-btn:hover { opacity: 1; }
+
+/* DEV MODE VISIBILITY */
+.dev-only { display: none !important; }
+body.dev-mode .dev-only { display: flex !important; }
+
+/* MYSTERY BUBBLE */
+.mystery-bubble {
+    position: absolute; width: 60px; height: 60px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.4) 20%, rgba(255, 255, 255, 0.1) 60%, rgba(255, 255, 255, 0.4) 100%);
+    border-radius: 50%; box-shadow: 0 0 15px rgba(255, 255, 255, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.4);
+    cursor: pointer; z-index: 9999; pointer-events: auto; transition: transform 0.1s; animation: bubbleWobble 3s ease-in-out infinite;
+    display: flex; justify-content: center; align-items: center; font-size: 24px;
+}
+.mystery-bubble::after { content: "?"; color: rgba(255,255,255,0.7); font-weight: bold; font-family: 'Press Start 2P', cursive; font-size: 20px; }
+.mystery-bubble:hover { transform: scale(1.1); background: radial-gradient(circle at 30% 30%, rgba(255, 235, 59, 0.95), rgba(255, 255, 255, 0.4) 20%, rgba(255, 255, 255, 0.1) 60%, rgba(255, 235, 59, 0.4) 100%); }
+.mystery-bubble:active { transform: scale(0.9); }
+@keyframes bubbleWobble { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-15px) scale(1.05); } }
+@keyframes pulsePrestige { 0% { box-shadow: 0 0 10px #8e44ad; } 50% { box-shadow: 0 0 25px #d2a6ff; } 100% { box-shadow: 0 0 10px #8e44ad; } }
+@keyframes pulseRed { 0% { box-shadow: 0 0 20px #e74c3c; } 50% { box-shadow: 0 0 40px #f1c40f; } 100% { box-shadow: 0 0 20px #e74c3c; } }
+
+/* --- MODALS --- */
+.modal-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); z-index: 200; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+}
+.modal-content {
+    background: #1e1e1e; border: 2px solid #444; border-radius: 12px;
+    display: flex; box-shadow: 0 0 50px rgba(0,0,0,0.8); overflow: hidden;
+    max-width: 90%; max-height: 90%; position: relative;
+}
+
+.close-btn { position: absolute; top: 10px; right: 15px; font-size: 28px; color: #fff; cursor: pointer; z-index: 10; font-weight: bold; }
+.close-btn:hover { color: #f1c40f; }
+
+/* Player Card - MADE EVEN WIDER */
+#player-modal .modal-content { width: 1050px; height: 550px; }
+
+.modal-left { width: 250px; background: #111; display: flex; flex-direction: column; align-items: center; padding: 20px; border-right: 2px solid #333; }
+#player-name-input { background: transparent; border: none; border-bottom: 2px solid #555; color: #fff; font-size: 18px; text-align: center; padding: 5px; width: 100%; margin-bottom: 10px; font-weight: bold; }
+#player-stats { font-size: 12px; color: #aaa; text-align: center; margin-bottom: 15px; width: 100%; }
+.stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 2px;}
+/* CHANGE: Removed pixelated rendering here too */
+#avatar-preview-canvas { width: 200px; height: 300px; background: #222; border-radius: 8px; border: 2px solid #333; }
+.modal-right { flex: 1; display: flex; flex-direction: column; }
+/* CHANGE: Added padding-right to prevent Close-X from overlapping the last tab */
+.shop-tabs { display: flex; background: #252525; padding-right: 50px; }
+.shop-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; border-bottom: 3px solid transparent; color: #888; font-weight: bold; font-size: 12px; }
+.shop-tab:hover { background: #2a2a2a; color: #fff; }
+.shop-tab.active { border-bottom-color: #f1c40f; color: #f1c40f; background: #222; }
+.shop-grid { flex: 1; padding: 15px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
+.shop-item { background: #2c2c2c; border: 2px solid #444; border-radius: 6px; padding: 8px; text-align: center; cursor: pointer; transition: all 0.1s; }
+.shop-item:hover { background: #333; transform: translateY(-2px); }
+.shop-item.owned { border-color: #2ecc71; }
+.shop-item.equipped { border-color: #f1c40f; background: #2c2500; box-shadow: 0 0 10px rgba(241, 196, 15, 0.2); }
+.item-price { font-size: 11px; color: #f1c40f; margin-top: 5px; }
+.item-name { font-size: 11px; font-weight: bold; margin-bottom: 5px; height: 26px; display: flex; align-items: center; justify-content: center; }
+
+/* NEW: BOT SKILL MODAL STYLES */
+#bot-skill-modal .modal-content {
+    width: 450px; padding: 20px; flex-direction: column;
+    background: linear-gradient(135deg, #2c3e50, #000);
+    border: 2px solid #3498db;
+}
+
+.bot-preview-large {
+    width: 80px; height: 80px; background: #333; border-radius: 12px; margin: 0 auto 20px auto;
+    display: flex; justify-content: center; align-items: center;
+    border: 4px solid #fff; box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    position: relative;
+}
+
+.tech-point-display {
+    background: #111; border: 1px solid #555; border-radius: 20px;
+    padding: 5px 15px; text-align: center; color: #00d2d3; font-weight: bold; font-size: 12px;
+    margin-bottom: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.miner-icon-area { width: 40px; height: 40px; margin-right: 12px; position: relative; display: flex; align-items: center; justify-content: center; overflow: visible; /* CHANGED: Allow gear to pop out */ }
+
+/* Bot & Field Animations */
+.bot-body { width: 24px; height: 24px; background: #444; border-radius: 4px; position: relative; box-shadow: inset 0 0 4px rgba(0,0,0,0.5); }
+.bot-arm { position: absolute; width: 14px; height: 4px; background: #999; top: 10px; right: -8px; transform-origin: 0% 50%; transform: rotate(-30deg); display: none; border-radius: 2px; }
+.bot-arm::after { content: ''; position: absolute; right: -4px; top: -3px; width: 8px; height: 10px; background: #ccc; border-radius: 2px; }
+.anim-active .bot-body { animation: bot-bob 1s ease-in-out infinite alternate; }
+.anim-active .bot-arm { display: block; background: #fff; animation: arm-swing 0.2s infinite alternate; }
+@keyframes bot-bob { 0% { transform: translateY(0); } 100% { transform: translateY(-2px); } }
+@keyframes arm-swing { 0% { transform: rotate(-30deg); } 100% { transform: rotate(45deg); } }
+
+.skill-btn-mini {
+    position: absolute;
+    right: -8px; top: -8px; /* CHANGED: Moved to corner (Badge style) */
+    width: 22px; height: 22px;
+    background: #34495e; border: 2px solid #fff; border-radius: 50%; /* Round */
+    color: #fff; font-size: 12px; display: flex; justify-content: center; align-items: center;
+    cursor: pointer; z-index: 100; /* CHANGED: Force on top */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+.skill-btn-mini:hover { background: #3498db; transform: scale(1.1); }
+.skill-btn-mini.disabled {
+    opacity: 0.8; /* CHANGED: More visible */
+    cursor: not-allowed; background: #222; border-color: #555; color: #777;
+}
+
+/* NEW: Pulse animation for available points */
+@keyframes gearPulse { 0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); border-color: #f1c40f; } 70% { box-shadow: 0 0 0 6px rgba(241, 196, 15, 0); border-color: #fff; } 100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); border-color: #f1c40f; } }
+.skill-btn-mini.has-points { animation: gearPulse 1.5s infinite; background: #e67e22; color: #fff; font-weight: bold; }
+
+/* NEW: ARTIFACT & STAT STYLES */
+.artifact-card {
+    background: linear-gradient(135deg, #222, #111);
+    border: 2px solid #444; border-radius: 8px; padding: 10px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; position: relative; overflow: hidden;
+    transition: transform 0.2s;
+}
+.artifact-card.found { border-color: #f1c40f; box-shadow: 0 0 15px rgba(241, 196, 15, 0.2); }
+.artifact-card.locked { opacity: 0.5; filter: grayscale(1); }
+.artifact-icon { font-size: 32px; margin-bottom: 5px; }
+.artifact-bonus { font-size: 9px; color: #2ecc71; margin-top: 5px; }
+.artifact-world { position: absolute; top: 2px; right: 5px; font-size: 10px; opacity: 0.5; }
+
+.stat-list-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 15px; border-bottom: 1px solid #333;
+    font-size: 14px; color: #ccc;
+}
+.stat-list-row:last-child { border-bottom: none; }
+/* FIXED: Achievement Modal Style - Window border removed/neutral, items highlighted */
+#achieve-modal .modal-content {
+    border: 2px solid #444; /* Neutral window border */
+    background: linear-gradient(135deg, #222, #111);
+}
+
+/* CHANGED: Individual Achievement Rows get Gold Border */
+.achieve-row {
+    display: flex; align-items: center;
+    background: #2c2c2c; margin-bottom: 8px; padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #f1c40f; /* GOLD BORDER FOR ITEMS */
+    transition: 0.3s;
+}
+.exchange-btn { background: #27ae60; color: white; border: none; padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.exchange-btn:disabled { background: #444; color: #777; cursor: not-allowed; }
+.exchange-info { text-align: center; font-size: 11px; color: #aaa; margin-top: 5px; }
+.exchange-rate-display { font-family: monospace; color: #f1c40f; font-weight: bold; }
+
+/* FIXED: World Travel Modal - IMPROVED STYLES */
+#world-modal .modal-content {
+    width: 600px; padding: 30px;
+    flex-direction: column !important; /* Force vertical layout */
+    align-items: center; background: #111;
+    border: 2px solid #27ae60; text-align: center;
+}
+
+/* RESTORED: Banner Style for World Cards */
+.world-card {
+    width: 100%;
+    background: linear-gradient(90deg, #222, #111); /* Subtle gradient default */
+    margin: 8px 0; padding: 15px 20px;
+    border-radius: 8px; border: 2px solid #444;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: 0.2s; box-sizing: border-box;
+    position: relative; overflow: hidden;
+}
+.world-card:hover { transform: scale(1.02); border-color: #aaa; }
+
+/* World Specific Banners */
+.world-card.active { border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+
+#card-mine { border-left: 5px solid #00d2d3; }
+#card-mine.active { background: linear-gradient(90deg, #2c3e50, #111); }
+
+#card-forest { border-left: 5px solid #2ecc71; }
+#card-forest.active { background: linear-gradient(90deg, #27ae60, #111); }
+
+#card-desert { border-left: 5px solid #f1c40f; }
+#card-desert.active { background: linear-gradient(90deg, #e67e22, #111); }
+
+#card-ice { border-left: 5px solid #81ecec; }
+#card-ice.active { background: linear-gradient(90deg, #3498db, #111); }
+
+.world-info h3 { margin: 0 0 5px 0; font-family: 'Press Start 2P', cursive; font-size: 12px; line-height: 1.5; text-transform: uppercase; }
+.world-icon { font-size: 32px; margin-right: 20px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.5)); }
+
+/* FIXED: Exchange Modal Style */
+#exchange-modal .modal-content {
+    width: 500px; padding: 20px; flex-direction: column !important;
+    border: 2px solid #95a5a6; /* Silver border */
+    background: linear-gradient(135deg, #2c3e50, #000);
+}
+
+.btn-travel { padding: 8px 20px; background: #2980b9; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 10px; }
+.btn-unlock { padding: 8px 20px; background: #f39c12; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 10px; }
+.btn-travel:disabled, .btn-unlock:disabled { background: #444; cursor: not-allowed; color: #888; }
+
+/* NEW: LOGIN OVERLAY */
+#login-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #111; z-index: 99999;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    font-family: 'Press Start 2P', cursive;
+}
+
+/* NEW: GIFT TRANSITION OVERLAY */
+#gift-transition {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #c0392b; z-index: 100001; /* Above everything */
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+}
+
+/* NEW: EVENT WIN OVERLAY */
+#event-win-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95); /* Fast schwarz, deckend */
+    z-index: 100002;
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+}
+.win-title {
+    font-family: 'Press Start 2P', cursive; font-size: 40px; color: #f1c40f;
+    text-shadow: 0 0 20px #e67e22; margin-bottom: 20px;
+    animation: winPulse 1s infinite alternate;
+}
+.win-sub { color: #fff; font-size: 16px; margin-bottom: 40px; }
+
+@keyframes winPulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+/* RESTORED: ACHIEVEMENT TOAST STYLES */
+#achievement-toast {
+    position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    border: 2px solid #fff; border-radius: 50px;
+    padding: 10px 30px;
+    display: flex; align-items: center; gap: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 9999; pointer-events: none;
+    transition: top 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+#achievement-toast.show { top: 80px; }
+.toast-icon { font-size: 32px; }
+.toast-text strong { display: block; color: #fff; font-size: 14px; text-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+.toast-text small { color: #fff; font-size: 11px; opacity: 0.9; }
+
+/* RESTORED: MODAL SPECIFIC STYLES */
+/* Settings */
+#settings-modal .modal-content { width: 350px; padding: 20px; flex-direction: column !important; gap: 20px; }
+.settings-header { text-align: center; font-size: 20px; font-weight: bold; color: #ccc; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 10px; width: 100%; }
+.setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; width: 100%; }
+.toggle-switch { position: relative; width: 50px; height: 24px; background: #444; border-radius: 12px; cursor: pointer; transition: 0.3s; }
+.toggle-switch.active { background: #2ecc71; }
+.toggle-knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: 0.3s; }
+.toggle-switch.active .toggle-knob { left: 28px; }
+
+/* Prestige Modal */
+#prestige-modal .modal-content { width: 600px; height: 500px; flex-direction: column !important; background: linear-gradient(135deg, #1a0b1f, #000); border: 2px solid #8e44ad; box-shadow: 0 0 80px rgba(142, 68, 173, 0.3); }
+.prestige-header { text-align: center; font-size: 32px; font-weight: 900; color: #d2a6ff; padding: 20px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 20px #8e44ad; width: 100%; box-sizing: border-box; }
+.prestige-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 20px; width: 100%; box-sizing: border-box; }
+.dance-floor { width: 100%; height: 200px; position: relative; background: radial-gradient(circle at center, #331040, transparent); border-bottom: 2px solid #8e44ad; display: flex; justify-content: center; align-items: center; }
+.big-crystal { font-size: 80px; filter: drop-shadow(0 0 20px #00d2d3); animation: floatCrystal 3s ease-in-out infinite; z-index: 10; }
+@keyframes floatCrystal { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+.dancer { position: absolute; width: 32px; height: 32px; animation: danceBob 0.5s infinite alternate; }
+.dancer .bot-body { width: 100%; height: 100%; }
+.dancer .bot-arm { transform: rotate(-45deg); animation: danceArm 0.5s infinite alternate; top: -5px; right: -10px; }
+.prestige-btn-main { background: linear-gradient(45deg, #8e44ad, #9b59b6); border: none; padding: 15px 40px; font-size: 20px; color: white; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px rgba(142, 68, 173, 0.5); transition: transform 0.2s; width: 80%; margin-top: 10px; }
+.prestige-btn-main:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 0 30px rgba(142, 68, 173, 0.8); }
+.prestige-btn-main:disabled { background: #444; color: #777; cursor: not-allowed; box-shadow: none; transform: none; }
+.reward-info { text-align: center; color: #ccc; font-size: 14px; margin-bottom: 10px; }
+.reward-big { font-size: 32px; color: #fff; font-weight: bold; margin: 10px 0; }
+
+/* Pet Shop Modal */
+#pet-modal .modal-content { width: 500px; height: 600px; flex-direction: column !important; }
+
+.giant-gift {
+    font-size: 100px;
+    animation: giftShake 2.5s ease-in-out forwards;
+    cursor: pointer;
+}
+@keyframes giftShake {
+    0%, 50% { transform: rotate(0deg) scale(1); }
+    10%, 30% { transform: rotate(-10deg) scale(1.1); }
+    20%, 40% { transform: rotate(10deg) scale(1.1); }
+    60% { transform: scale(1.2); opacity: 1; }
+    80% { transform: scale(3); opacity: 0; }
+    100% { transform: scale(5); opacity: 0; }
+}
+
+.login-box {
+    background: #2c3e50; border: 4px solid #f1c40f; padding: 40px;
+    border-radius: 10px; text-align: center; max-width: 400px; width: 90%;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+.login-title { color: #f1c40f; font-size: 24px; margin-bottom: 30px; text-shadow: 3px 3px 0 #c0392b; }
+.login-input {
+    width: 100%; padding: 15px; margin-bottom: 20px;
+    background: #111; border: 2px solid #555; color: #fff;
+    font-family: inherit; font-size: 14px; text-align: center;
+    box-sizing: border-box; outline: none;
+}
+.login-input:focus { border-color: #3498db; }
+.login-btn-row { display: flex; gap: 10px; justify-content: center; }
+.login-btn {
+    padding: 15px 20px; font-family: inherit; font-size: 12px; cursor: pointer;
+    border: none; border-bottom: 4px solid rgba(0,0,0,0.3); border-radius: 4px;
+    color: #fff; flex: 1; transition: transform 0.1s;
+}
+.login-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+.btn-login { background: #27ae60; }
+.btn-create { background: #3498db; }
+
+/* Loading Animation Container */
+#loading-anim { display: none; flex-direction: column; align-items: center; margin-top: 20px; }
+.loading-scene { position: relative; width: 100px; height: 100px; margin-bottom: 20px; transform: scale(2); }
+.loading-bot { position: absolute; left: 20px; top: 40px; }
+/* CHANGED: More dramatic arm animation for loading */
+.loading-bot .bot-arm { animation: loadingMine 0.8s infinite !important; transform-origin: 0% 50%; }
+.loading-rock { position: absolute; right: 20px; top: 50px; width: 30px; height: 30px; background: #555; border-radius: 4px; animation: rockShake 0.8s infinite; }
+
+/* NEW: Loading Dust Particles */
+.loading-dust { 
+    position: absolute; right: 15px; top: 45px; 
+    width: 4px; height: 4px; background: #aaa; 
+    border-radius: 50%; opacity: 0;
+    box-shadow: 10px 10px 0 #aaa, -5px 5px 0 #aaa;
+    animation: dustPop 0.8s infinite; 
+}
+
+/* NEW: LOGOUT ANIMATION STYLES */
+#logout-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #111; z-index: 100000;
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+}
+.logout-scene { position: relative; width: 200px; height: 150px; border-bottom: 4px solid #333; margin-bottom: 20px; }
+
+.logout-door {
+    position: absolute; right: 40px; bottom: 0; width: 50px; height: 90px;
+    background: #fff; /* Light from inside */
+    border: 4px solid #555; border-bottom: none;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+}
+
+.logout-bot {
+    position: absolute; left: 20px; bottom: 0;
+    transform-origin: bottom center;
+    animation: walkOutDoor 4s linear forwards;
+}
+
+/* Walking Animation */
+.logout-bot .bot-body { animation: botWalkBob 0.4s infinite alternate; }
+
+@keyframes walkOutDoor {
+    0% { transform: translateX(0) scale(1); opacity: 1; }
+    20% { transform: translateX(30px) scale(1); opacity: 1; }
+    50% { transform: translateX(75px) scale(0.9); opacity: 1; } /* Near Door */
+    80% { transform: translateX(95px) scale(0.7); opacity: 0.5; } /* Inside Door */
+    100% { transform: translateX(100px) scale(0); opacity: 0; } /* Gone */
+}
+
+@keyframes botWalkBob {
+    0% { transform: translateY(0) rotate(-5deg); }
+    100% { transform: translateY(-3px) rotate(5deg); }
+}
+
+@keyframes loadingMine {
+    0% { transform: rotate(-40deg); }
+    50% { transform: rotate(60deg); } /* Smash down */
+    100% { transform: rotate(-40deg); }
+}
+@keyframes rockShake {
+    0%, 40% { transform: translateX(0); }
+    50% { transform: translateX(2px) scale(0.95); } /* Impact frame */
+    60% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+}
+@keyframes dustPop {
+    0%, 45% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.5) translateY(-5px); }
+    100% { opacity: 0; transform: scale(2) translateY(-10px); }
+}
+
+/* Event Modal */
+#event-modal .modal-content { width: 500px; padding: 20px; flex-direction: column; gap: 20px; }
+.event-banner { width: 100%; height: 120px; border-radius: 8px; background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); display: flex; justify-content: center; align-items: center; color: white; font-family: 'Press Start 2P', cursive; font-size: 24px; text-shadow: 2px 2px 0 #000; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+.event-banner::after { content: "❄️"; position: absolute; font-size: 80px; opacity: 0.2; right: -20px; top: -20px; }
+.event-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #444; }
+.event-shop-btn { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+/* --- GAME LAYOUT --- */
+#main-container { display: flex; gap: 10px; padding: 20px; max-width: 1000px; width: 100%; height: 90vh; }
+#left-col { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+#right-col { flex: 1; background: #1e1e1e; border: 2px solid #333; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+.panel-header { background: #2c3e50; padding: 15px; text-align: center; font-weight: bold; border-bottom: 2px solid #34495e; color: #f1c40f; text-transform: uppercase; letter-spacing: 1px; }
+
+#miner-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+#miner-list::-webkit-scrollbar { width: 8px; }
+#miner-list::-webkit-scrollbar-track { background: #111; }
+#miner-list::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+
+.miner-card { background: #252525; padding: 10px; border-radius: 6px; border-left: 4px solid #555; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; height: 50px; }
+.miner-card:hover { background: #2a2a2a; }
+.miner-card.locked { opacity: 0.6; filter: grayscale(1); border-left-color: #333; }
+.miner-icon-area { width: 40px; height: 40px; margin-right: 12px; position: relative; display: flex; align-items: center; justify-content: center; }
+
+/* Bot & Field Animations */
+.bot-body { width: 24px; height: 24px; background: #444; border-radius: 4px; position: relative; box-shadow: inset 0 0 4px rgba(0,0,0,0.5); }
+.bot-arm { position: absolute; width: 14px; height: 4px; background: #999; top: 10px; right: -8px; transform-origin: 0% 50%; transform: rotate(-30deg); display: none; border-radius: 2px; }
+.bot-arm::after { content: ''; position: absolute; right: -4px; top: -3px; width: 8px; height: 10px; background: #ccc; border-radius: 2px; }
+.anim-active .bot-body { animation: bot-bob 1s ease-in-out infinite alternate; }
+.anim-active .bot-arm { display: block; background: #fff; animation: arm-swing 0.2s infinite alternate; }
+@keyframes bot-bob { 0% { transform: translateY(0); } 100% { transform: translateY(-2px); } }
+@keyframes arm-swing { 0% { transform: rotate(-30deg); } 100% { transform: rotate(45deg); } }
+
+.miner-info { flex: 1; }
+.miner-info h4 { margin: 0; font-size: 14px; color: #fff; display: flex; align-items: center; gap: 6px; }
+.miner-info p { margin: 4px 0 0; font-size: 11px; color: #aaa; }
+.miner-btn { background: #e67e22; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; min-width: 75px; text-align: center; transition: transform 0.1s; }
+.miner-btn:disabled { background: #444; color: #777; cursor: not-allowed; }
+
+/* NEW: ACTION CONTAINER FOR RIGHT SIDE */
+.miner-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Space between Upgrade and Gear */
+    height: 100%;
+}
+
+/* NEW: SQUARE GEAR BUTTON */
+.gear-btn-square {
+    width: 32px;
+    height: 32px;
+    background: #2980b9; /* CHANGED: Brighter Blue by default (Active look) */
+    border: 2px solid #3498db; /* CHANGED: Lighter border */
+    border-radius: 6px; 
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer !important; /* CHANGED: Force Pointer */
+    font-size: 16px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    position: relative; z-index: 10; /* Ensure it's on top */
+}
+.gear-btn-square:hover { 
+    background: #3498db; 
+    border-color: #fff; 
+    transform: translateY(-1px); 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+.gear-btn-square:active { transform: translateY(1px); }
+
+.gear-btn-square.disabled { 
+    opacity: 0.3; 
+    cursor: not-allowed !important; /* Force Stop only when truly disabled */
+    background: #111; 
+    border-color: #333;
+    box-shadow: none;
+    filter: grayscale(1);
+}
+
+.gear-btn-square.has-points {
+    animation: gearPulseSquare 1.5s infinite;
+    background: #e67e22;
+    border-color: #f1c40f;
+    color: #fff;
+}
+
+@keyframes gearPulseSquare {
+    0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); border-color: #f1c40f; }
+    70% { box-shadow: 0 0 0 6px rgba(241, 196, 15, 0); border-color: #fff; }
+    100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); border-color: #f1c40f; }
+}
+
+/* NEW: TABS FOR RIGHT COLUMN */
+.right-col-tabs { display: flex; background: #2c3e50; border-bottom: 2px solid #34495e; }
+.right-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #7f8c8d; font-weight: bold; transition: 0.2s; border-bottom: 3px solid transparent; }
+.right-tab:hover { background: #34495e; color: #fff; }
+.right-tab.active { color: #f1c40f; border-bottom-color: #f1c40f; background: #253545; }
+
+#game-wrapper { 
+    position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 4px solid #4a4a4a; 
+    border-radius: 12px; overflow: hidden; background: #000; width: 320px; height: 320px; 
+    transition: border-color 0.3s, box-shadow 0.3s; 
+    flex-shrink: 0; cursor: pointer;
+}
+body.theme-xmas #game-wrapper { border: 8px solid #c0392b; outline: 4px dashed #2ecc71; }
+
+#active-miners-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+.field-miner { position: absolute; width: 24px; height: 24px; transform-origin: center center; filter: drop-shadow(0 0 2px black); }
+
+.buff-strength { border-color: #9b59b6 !important; box-shadow: 0 0 25px #9b59b6 !important; }
+.buff-miner { border-color: #00d2d3 !important; box-shadow: 0 0 25px #00d2d3 !important; }
+.buff-overdrive { border-color: #e74c3c !important; box-shadow: 0 0 35px #e74c3c !important; animation: pulseRed 1s infinite; }
+
+canvas { display: block; background: #111; -webkit-tap-highlight-color: transparent; }
+#ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; z-index: 10; }
+.top-bar { padding: 10px; display: flex; justify-content: space-between; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 0 #000; }
+.layer-indicator { text-align: center; font-size: 24px; font-weight: 900; color: rgba(255, 255, 255, 0.15); text-transform: uppercase; letter-spacing: 4px; margin-top: -40px; pointer-events: none; }
+
+.big-gold-display {
+    background: linear-gradient(to bottom, #2c2c2c, #111); border: 2px solid #f1c40f; border-radius: 8px; padding: 10px 15px; margin-bottom: 5px;
+    display: flex; align-items: center; justify-content: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 100%; box-sizing: border-box;
+}
+.gold-icon-big { font-size: 28px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+.gold-text-big { font-size: 22px; color: #f1c40f; font-weight: 900; text-shadow: 1px 1px 0 #000; font-family: 'Courier New', monospace; }
+
+#tool-shop { width: 320px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tool-btn { padding: 10px; background: #2ecc71; color: white; border: none; border-bottom: 4px solid #27ae60; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.tool-btn small { font-size: 10px; font-weight: normal; opacity: 0.9; margin-top: 2px; }
+.tool-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+.tool-btn:disabled { background: #444; border-bottom-color: #333; color: #888; cursor: not-allowed; }
+
+#btn-pick { grid-column: span 2; font-size: 14px; padding: 5px; width: 100%; margin: 0; display: flex; flex-direction: column; justify-content: center; }
+#btn-tnt { background: #e74c3c; border-bottom-color: #c0392b; }
+#btn-pot-str { background: #9b59b6; border-bottom-color: #8e44ad; }
+#btn-pot-min { background: #00d2d3; border-bottom-color: #00a8ff; color: #111; }
+#btn-pot-od { background: #e74c3c; border-bottom-color: #c0392b; grid-column: span 2; border: 1px solid #f1c40f; }
+
+.float-text { position: absolute; color: #fff; font-weight: bold; pointer-events: none; animation: floatUp 1s ease-out forwards; font-family: monospace; text-shadow: 1px 1px 0 #000; z-index: 10; }
+@keyframes floatUp { 100% { opacity: 0; transform: translateY(-30px) scale(1.2); } }
+.boss-stat { font-size: 11px; color: #e74c3c; font-weight: bold; margin-top: 5px; text-align: center; }
