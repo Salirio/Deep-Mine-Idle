@@ -1285,6 +1285,7 @@
 
     // --- CONSTANTS ---
     const STAGE_LENGTH = 20;
+    const MIN_ARTIFACT_DEPTH = 200;
 
     // --- WORLDS MODULE ---
     const Worlds = {
@@ -1703,7 +1704,8 @@
                 // NEW: Click Prestige Upgrade
                 clickUpgrade: 0,
                 costs: { tnt: 50, str: 100, min: 250, od: 1000 },
-                buffs: { str: 0, min: 0, od: 0 }
+                buffs: { str: 0, min: 0, od: 0 },
+                wasTouchedByPlayer: false
             },
             forest: {
                 unlocked: false,
@@ -1716,7 +1718,8 @@
                 clickSkillLevels: [0, 0, 0],
                 clickUpgrade: 0,
                 costs: { tnt: 50, str: 100, min: 250, od: 1000 },
-                buffs: { str: 0, min: 0, od: 0 }
+                buffs: { str: 0, min: 0, od: 0 },
+                wasTouchedByPlayer: false
             },
             // --- NEUER WÜSTEN STATE ---
             desert: {
@@ -1730,7 +1733,8 @@
                 clickSkillLevels: [0, 0, 0],
                 clickUpgrade: 0,
                 costs: { tnt: 50, str: 100, min: 250, od: 1000 },
-                buffs: { str: 0, min: 0, od: 0 }
+                buffs: { str: 0, min: 0, od: 0 },
+                wasTouchedByPlayer: false
             },
             // --- NEUE EIS WELT STATE ---
             ice: {
@@ -1743,7 +1747,8 @@
                 clickSkillLevels: [0, 0, 0],
                 clickUpgrade: 0,
                 costs: { tnt: 50, str: 100, min: 250, od: 1000 },
-                buffs: { str: 0, min: 0, od: 0 }
+                buffs: { str: 0, min: 0, od: 0 },
+                wasTouchedByPlayer: false
             },
             // --- NEW: CHRISTMAS EVENT STATE ---
             christmas: {
@@ -1756,7 +1761,8 @@
                 clickSkillLevels: [0, 0, 0],
                 clickUpgrade: 0,
                 costs: { tnt: 50, str: 100, min: 250, od: 1000 },
-                buffs: { str: 0, min: 0, od: 0 }
+                buffs: { str: 0, min: 0, od: 0 },
+                wasTouchedByPlayer: false
             },
             snowflakes: 0,
             impactX: null, impactY: null, isBoss: false, isLucky: false, cracks: [], lastBgMatIndex: -1
@@ -1938,15 +1944,18 @@
                 return; // Do nothing
             }
 
+            let act = this.getActive(); let conf = this.getConfig();
+
             // TRY INIT AUDIO ON CLICK
             if (!isAuto) {
                 AudioController.init();
                 // Play sound based on world
                 AudioController.playHit(this.state.activeWorld);
-                
+
                 // Track clicks
                 if(!this.state.stats) this.state.stats = { totalClicks: 0, totalGold: 0, blocksBroken: 0, maxCombo: 0, startTime: Date.now() };
                 this.state.stats.totalClicks++;
+                if (dmg === null) act.wasTouchedByPlayer = true;
                 this.checkAchievements(); // Check click achievements
 
                 // --- NEW: COMBO LOGIC (Arcade Style) ---
@@ -1998,12 +2007,10 @@
                 UI.update(); // Update HUD
             }
 
-            if (this.state.impactX === null) { 
-                this.state.impactX = x; this.state.impactY = y; 
-                this.generateCracks(x, y); 
+            if (this.state.impactX === null) {
+                this.state.impactX = x; this.state.impactY = y;
+                this.generateCracks(x, y);
             }
-            let act = this.getActive();
-            let conf = this.getConfig();
             let basePower = dmg || conf.picks[act.pickLevel].power;
             
             if (!dmg && !isAuto) {
@@ -2157,9 +2164,10 @@
                 UI.update();
                 return; 
             }
+            const canRollArtifacts = !this.state.isBoss && act.wasTouchedByPlayer && act.depth >= MIN_ARTIFACT_DEPTH && !this.state.activeEvent && this.state.activeWorld !== 'christmas';
 
             // NEW: Artifact Drop Logic
-            if (!this.state.isBoss) { 
+            if (canRollArtifacts) {
                 Worlds.artifacts.forEach(art => {
                     // Check world and if not already found
                     if(art.world === this.state.activeWorld && !this.state.artifactsFound.includes(art.id)) {
@@ -3331,9 +3339,10 @@
             act.loopCount = Math.floor(totalMatIndex / conf.materials.length);
             act.matIndex = totalMatIndex % conf.materials.length;
             let mat = conf.materials[act.matIndex];
+            act.wasTouchedByPlayer = false;
             // Safe guard if mat is undefined
             if (!mat) mat = conf.materials[0];
-
+            
             let loopInfo = GameLogic.getLoopInfo(act.loopCount);
             
             // CHANGED: Custom Loop Multiplier for Christmas (Gentle Scaling)
@@ -4812,5 +4821,6 @@
 
 </body>
 </html>
+
 
 
