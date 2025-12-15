@@ -5,7 +5,6 @@ export const MIN_ARTIFACT_DEPTH = 200;
 // --- WORLDS MODULE ---
 export const Worlds = {
     STAGE_LENGTH: 20,
-    // Artifact Definitions
     artifacts: [
         { id: 'compass', name: 'Alter Kompass', world: 'mine', chance: 0.002, bonus: '+5% Krit Chance', type: 'crit', val: 0.05, icon: '🧭' },
         { id: 'fossil', name: 'Dino Fossil', world: 'mine', chance: 0.001, bonus: '-10% Upgrade Kosten', type: 'cost', val: 0.9, icon: '🦖' },
@@ -24,15 +23,14 @@ export const Worlds = {
         { id: 'boss', name: "Boss Killer", desc: "Besiege Bosse", baseGoal: 1, scale: 2, baseReward: 10, icon: '☠️', type: 'boss' },
         { id: 'prestige', name: "Zeitwanderer", desc: "Anzahl Aufstiege", baseGoal: 1, scale: 1, baseReward: 20, icon: '💎', type: 'prestige' } 
     ],
-    // Pet Definitions
     pets: [
-        { id: 'rock_slime', name: "Fels Schleim", bonus: "+10% Gold", cost: 10, type: 'gold', val: 0.10, color: '#95a5a6', shape: 'slime' },
-        { id: 'bat_bot', name: "Fleder-Drohne", bonus: "+5% DPS", cost: 25, type: 'dps', val: 0.05, color: '#34495e', shape: 'bat' },
-        { id: 'gold_fairy', name: "Gold Fee", bonus: "+25% Gold", cost: 50, type: 'gold', val: 0.25, color: '#f1c40f', shape: 'fairy' },
-        { id: 'magma_cube', name: "Magma Würfel", bonus: "+15% DPS", cost: 100, type: 'dps', val: 0.15, color: '#e74c3c', shape: 'cube' },
-        { id: 'diamond_golem', name: "Mini Golem", bonus: "+2% Krit Chance", cost: 250, type: 'crit', val: 0.02, color: '#00d2d3', shape: 'golem' },
-        { id: 'void_wisp', name: "Leeren Geist", bonus: "+50% Gold", cost: 500, type: 'gold', val: 0.50, color: '#8e44ad', shape: 'wisp' },
-        { id: 'sun_phoenix', name: "Solar Phönix", bonus: "+50% DPS", cost: 1000, type: 'dps', val: 0.50, color: '#e67e22', shape: 'phoenix' }
+        { id: 'rock_slime', name: "Fels Schleim", bonus: "+10% Gold", cost: 10, type: 'gold', val: 0.10, icon: '🦠' },
+        { id: 'bat_bot', name: "Fleder-Drohne", bonus: "+5% DPS", cost: 25, type: 'dps', val: 0.05, icon: '🦇' },
+        { id: 'gold_fairy', name: "Gold Fee", bonus: "+25% Gold", cost: 50, type: 'gold', val: 0.25, icon: '🧚' },
+        { id: 'magma_cube', name: "Magma Würfel", bonus: "+15% DPS", cost: 100, type: 'dps', val: 0.15, icon: '🔥' },
+        { id: 'diamond_golem', name: "Mini Golem", bonus: "+2% Krit Chance", cost: 250, type: 'crit', val: 0.02, icon: '🤖' },
+        { id: 'void_wisp', name: "Leeren Geist", bonus: "+50% Gold", cost: 500, type: 'gold', val: 0.50, icon: '👻' },
+        { id: 'sun_phoenix', name: "Solar Phönix", bonus: "+50% DPS", cost: 1000, type: 'dps', val: 0.50, icon: '🦅' }
     ],
     mine: {
         config: { name: "DEEP DIG", currency: "Gold", prestigeIcon: "💎", themeColor: "#2c3e50", bgTint: [0,0,0] },
