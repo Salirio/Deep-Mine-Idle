@@ -201,37 +201,53 @@ export const UI = {
     closePetShop: () => document.getElementById('pet-modal').style.display = 'none',
 
     openMobileMenu: function() {
-        document.getElementById('mobile-menu-modal').style.display = 'flex';
-        const grid = document.getElementById('mobile-menu-buttons');
-        grid.innerHTML = "";
+    document.getElementById('mobile-menu-modal').style.display = 'flex';
+    const grid = document.getElementById('mobile-menu-buttons');
+    grid.innerHTML = "";
+    
+    const Worlds = window.Worlds; 
+    const State = window.State;
+    
+    // Basische Prüfung: Wenn Worlds oder State fehlen, Notfallnachricht und Abbruch
+    if (!Worlds || !State || !State.activeWorld || !Worlds[State.activeWorld]) {
+        grid.innerHTML = "<div style='color:#c0392b; font-size:12px; padding:20px;'>Daten werden noch geladen. Bitte kurz warten.</div>";
+        return;
+    }
+
+    const activeWorldConf = Worlds[State.activeWorld].config;
+
+    // Definiere die Buttons, die vorher in der HUD waren:
+    const menuItems = [
+        // Diese Buttons sollten immer funktionieren
+        { icon: '🌍', label: 'WELTEN', onclick: 'openWorldTravel()' },
+        { icon: '🏆', label: 'ERFOLGE', onclick: 'openAchievements()' },
+        { icon: '🐾', label: 'BEGLEITER', onclick: 'openPetShop()' },
+        { icon: '⚖️', label: 'BÖRSE', onclick: 'openExchange()' },
         
-        // Globale Objekte importieren (müssen global sein, da UI sie nicht direkt importiert)
-        const Worlds = window.Worlds; 
-        const State = window.State;
-        if(!Worlds || !State) return;
+        // Prestige: Hängt von aktiver Welt-Konfiguration ab (kann fehlschlagen)
+        { icon: activeWorldConf.prestigeIcon || '💎', label: 'PRESTIGE', onclick: 'openPrestige()' },
+        
+        // Events: Hängt von Event-Status ab (kann fehlschlagen)
+        { icon: '🎁', label: 'EVENTS', onclick: 'openEventCenter()' }
+    ];
 
-        // Definiere die Buttons, die vorher in der HUD waren:
-        const menuItems = [
-            { icon: '🌍', label: 'WELTEN', onclick: 'openWorldTravel()' },
-            { icon: Worlds[State.activeWorld].config.prestigeIcon, label: 'PRESTIGE', onclick: 'openPrestige()' },
-            { icon: '🏆', label: 'ERFOLGE', onclick: 'openAchievements()' },
-            { icon: '🐾', label: 'BEGLEITER', onclick: 'openPetShop()' },
-            { icon: '⚖️', label: 'BÖRSE', onclick: 'openExchange()' },
-            { icon: '🎁', label: 'EVENTS', onclick: 'openEventCenter()' }
-        ];
-
-        menuItems.forEach(item => {
+    menuItems.forEach(item => {
+        // ZUSÄTZLICHE PRÜFUNG: Nur Buttons generieren, wenn die Funktion existiert
+        if (window[item.onclick.replace(/\(.*\)/, '')]) { 
             const btn = document.createElement('button');
             btn.className = 'menu-btn'; 
             btn.innerHTML = `<span style="font-size:24px;">${item.icon}</span><br>${item.label}`;
             btn.onclick = () => { 
-                // Die eval-Funktion ruft die globalen UI-Funktionen auf
                 eval(item.onclick); 
                 UI.closeMobileMenu(); 
             };
             grid.appendChild(btn);
-        });
-    },
+        } else {
+             // Debugging-Hilfe: Wenn ein Button fehlt, wissen wir, welcher
+             console.log(`[MOBILE MENU] Funktion ${item.label} (${item.onclick}) ist nicht global verfügbar.`);
+        }
+    });
+},
 
     closeMobileMenu: function() {
         document.getElementById('mobile-menu-modal').style.display = 'none';
@@ -831,4 +847,5 @@ export const UI = {
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
+
 
