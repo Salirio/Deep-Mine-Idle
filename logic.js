@@ -1,5 +1,5 @@
 import { State, Avatar } from './state.js';
-import { Worlds, STAGE_LENGTH, MIN_ARTIFACT_DEPTH } from './data.js';
+import { Worlds } from './data.js';
 import { AudioController } from './audio.js';
 import { UI } from './ui.js';
 
@@ -33,9 +33,7 @@ export const GameLogic = {
                 let prestigeBonus = (act.minerUpgrades && act.minerUpgrades[i]) ? (1 + act.minerUpgrades[i]) : 1;
                 let milestoneBonus = Math.pow(2, Math.floor(m.level / 10));
                 let skillMult = 1;
-                if (m.skills) {
-                    if(m.skills.dps) skillMult += (m.skills.dps * 0.20);
-                }
+                if (m.skills && m.skills.dps) skillMult += (m.skills.dps * 0.20);
                 dps += (conf.miners[i].basePower * m.level) * prestigeBonus * milestoneBonus * skillMult;
             }
         });
@@ -43,8 +41,12 @@ export const GameLogic = {
         dps *= (1 + globalSynergyBonus);
         
         let multiplier = 1;
+        if (Date.now() < act.buffs.min) multiplier *= 2;
+        if (Date.now() < act.buffs.od) multiplier *= 3;
+        
         if (State.artifactsFound.includes('root_heart')) multiplier += 0.05;
         if (State.artifactsFound.includes('christmas_star')) multiplier += 0.50;
+        
         let prestigeMult = 1 + (act.prestige * 0.25);
         
         return dps * multiplier * prestigeMult;
@@ -57,10 +59,19 @@ export const GameLogic = {
             AudioController.init();
             AudioController.playHit(State.activeWorld);
             State.stats.totalClicks++;
-            // Combo Logic could go here...
+            // Combo Logic Placeholder
         }
 
-        let basePower = dmg || 1; // Simplified calc, add full logic if needed
+        let basePower = dmg || 1; 
+        // Apply buffs to manual clicks
+        if(!isAuto && !dmg) {
+             // Logic simplified for rescue, normally uses Pick Power
+             let conf = this.getConfig();
+             basePower = conf.picks[act.pickLevel].power;
+             if (Date.now() < act.buffs.str) basePower *= 2;
+             if (Date.now() < act.buffs.od) basePower *= 3;
+        }
+
         act.currentHp -= basePower;
 
         if (State.settings.animations) {
@@ -80,9 +91,10 @@ export const GameLogic = {
         let conf = this.getConfig();
         let mat = conf.materials[act.matIndex];
         
-        // Reward
         let reward = mat.val;
-        act.gold += reward;
+        // Loop Multiplier simplified
+        let loopMult = Math.pow(10, act.loopCount);
+        act.gold += (reward * loopMult);
         act.depth++;
         
         if(act.depth > act.maxDepth) act.maxDepth = act.depth;
@@ -91,6 +103,7 @@ export const GameLogic = {
         this.saveGame();
     },
     
+    // --- PURCHASES ---
     buyMiner: function(index) {
         let act = this.getActive();
         let conf = this.getConfig();
@@ -98,7 +111,7 @@ export const GameLogic = {
         let type = conf.miners[index];
         
         let costMult = 1;
-        if(State.artifactsFound && State.artifactsFound.includes('fossil')) costMult = 0.9;
+        if(State.artifactsFound.includes('fossil')) costMult = 0.9;
         if(m.skills && m.skills.cost) costMult -= (m.skills.cost * 0.02);
 
         let baseCost = (m.level === 0) ? type.baseCost : Math.floor(type.baseCost * Math.pow(1.20, m.level));
@@ -112,11 +125,59 @@ export const GameLogic = {
         }
     },
 
-    openBotSkills: function(index) {
-        // Placeholder for skills modal
-        console.log("Skills Modal for Miner " + index);
+    buyPickUpgrade: function() {
+        let act = this.getActive(); 
+        let conf = this.getConfig();
+        let next = conf.picks[act.pickLevel + 1];
+        let costMult = State.artifactsFound.includes('fossil') ? 0.9 : 1;
+        
+        if (next) {
+            let cost = Math.floor(next.cost * costMult);
+            if (act.gold >= cost) {
+                act.gold -= cost;
+                act.pickLevel++;
+                UI.update();
+            }
+        }
     },
+
+    // --- CONSUMABLES ---
+    buyTNT: function() {
+        let act = this.getActive();
+        if(act.gold >= act.costs.tnt) {
+            act.gold -= act.costs.tnt;
+            act.costs.tnt = Math.floor(act.costs.tnt * 1.6);
+            this.hitBlock(160, 160, act.maxHp * 0.25);
+            UI.spawnFloater(160, 160, "BOOM!", "#e74c3c");
+            UI.update();
+        }
+    },
+    activateBuff: function(type) {
+        let act = this.getActive();
+        act.buffs[type] = Date.now() + 15000;
+        UI.update();
+    },
+    buyPotionStrength: function() { let act=this.getActive(); if(act.gold >= act.costs.str) { act.gold -= act.costs.str; act.costs.str*=1.8; this.activateBuff('str'); } },
+    buyPotionMiner: function() { let act=this.getActive(); if(act.gold >= act.costs.min) { act.gold -= act.costs.min; act.costs.min*=1.8; this.activateBuff('min'); } },
+    buyPotionOverdrive: function() { let act=this.getActive(); if(act.gold >= act.costs.od) { act.gold -= act.costs.od; act.costs.od*=2; this.activateBuff('od'); } },
+
+    // --- SKILLS & MISC ---
+    buyClickSkill: function(index) {
+        let act = this.getActive(); let conf = this.getConfig();
+        let skill = conf.clickSkills[index];
+        let lvl = act.clickSkillLevels[index] || 0;
+        let cost = Math.floor(skill.baseCost * Math.pow(1.5, lvl));
+        
+        if (act.gold >= cost && (!skill.max || lvl < skill.max)) {
+            act.gold -= cost;
+            act.clickSkillLevels[index]++;
+            UI.update();
+        }
+    },
+
+    openBotSkills: function(index) { UI.openBotSkills(index); },
     
+    // --- TRAVEL & PRESTIGE ---
     travelTo: function(world) {
         if(world === State.activeWorld) return;
         State.activeWorld = world; 
@@ -124,34 +185,74 @@ export const GameLogic = {
         UI.renderMinerList();
         UI.updateActiveMiners();
         UI.update();
+        UI.closeWorldTravel();
     },
 
+    tryUnlockForest: function(cost) { if(State.mine.gold >= cost) { State.mine.gold -= cost; State.forest.unlocked = true; this.travelTo('forest'); } },
+    tryUnlockDesert: function(cost) { if(State.forest.gold >= cost) { State.forest.gold -= cost; State.desert.unlocked = true; this.travelTo('desert'); } },
+    tryUnlockIce: function(cost) { if(State.desert.gold >= cost) { State.desert.gold -= cost; State.ice.unlocked = true; this.travelTo('ice'); } },
+
+    doPrestige: function() {
+        let act = this.getActive();
+        let reqDepth = 50 + (act.prestigeCount * 20);
+        if (act.depth < reqDepth) return;
+        
+        let reward = Math.floor(act.depth / 20);
+        act.prestige += reward; 
+        act.prestigeCount++;
+        
+        // Reset
+        act.gold = 0; act.depth = 1; act.currentHp = 1; act.pickLevel = 0;
+        act.miners.forEach(m => m.level = 0);
+        
+        UI.generateBlockTexture();
+        UI.renderMinerList();
+        UI.update();
+        UI.closePrestige();
+    },
+
+    hardReset: function() {
+        if(confirm("Alles löschen?")) {
+            if(State.username) localStorage.removeItem('DeepDigSave_' + State.username);
+            location.reload();
+        }
+    },
+
+    // --- SAVE SYSTEM (FIXED KEY) ---
     saveGame: function() {
+        if(!State.username) return; // Don't save if no user
         const saveObj = { state: State, avatar: Avatar };
-        localStorage.setItem('DeepDigSave', JSON.stringify(saveObj));
+        localStorage.setItem('DeepDigSave_' + State.username, JSON.stringify(saveObj));
     },
 
     loadGame: function() {
-        const raw = localStorage.getItem('DeepDigSave');
+        if(!State.username) return false;
+        const raw = localStorage.getItem('DeepDigSave_' + State.username);
         if(raw) {
-            const data = JSON.parse(raw);
-            Object.assign(State, data.state);
-            Object.assign(Avatar, data.avatar);
-            return true;
+            try {
+                const data = JSON.parse(raw);
+                if(data.state) {
+                    // Deep Merge needed in real app, simplistic here
+                    Object.assign(State, data.state);
+                    // Manually restore inner objects if they got wiped, but let's assume structure is ok
+                }
+                if(data.avatar) Object.assign(Avatar, data.avatar);
+                return true;
+            } catch(e) { console.error("Save Load Error", e); return false; }
         }
         return false;
-    }, // <--- THIS COMMA WAS MISSING!
+    },
 
+    // --- EVENTS & BUBBLES ---
     clickBubble: function() {
         let rand = Math.random();
         let act = this.getActive();
-        
         if (rand < 0.4) {
             act.buffs.str = Date.now() + 15000;
-            UI.spawnFloater(window.innerWidth/2, window.innerHeight/2, "STÄRKE BOOST!", "#9b59b6");
+            UI.spawnFloater(window.innerWidth/2, window.innerHeight/2, "STÄRKE!", "#9b59b6");
         } else if (rand < 0.8) {
             act.buffs.min = Date.now() + 15000;
-            UI.spawnFloater(window.innerWidth/2, window.innerHeight/2, "ROBO ÖL!", "#00d2d3");
+            UI.spawnFloater(window.innerWidth/2, window.innerHeight/2, "ÖL!", "#00d2d3");
         } else {
             let reward = this.calculateDPS() * 300; 
             if(reward < 100) reward = 1000 * act.depth; 
@@ -165,29 +266,40 @@ export const GameLogic = {
         if (State.activeEvent === ev) {
             State.activeEvent = null;
             document.body.classList.remove('theme-xmas');
-            const t = document.getElementById('xmas-toggle');
-            if(t) t.classList.remove('active');
-            const shopBtn = document.getElementById('event-shop-btn');
-            if(shopBtn) shopBtn.style.display = 'none';
         } else {
             State.activeEvent = ev;
             document.body.classList.add('theme-xmas');
-            const t = document.getElementById('xmas-toggle');
-            if(t) t.classList.add('active');
-            const shopBtn = document.getElementById('event-shop-btn');
-            if(shopBtn) shopBtn.style.display = 'flex';
         }
         UI.generateBlockTexture();
         UI.update();
     },
 
-    tryUnlockForest: function(cost) {
-        if(State.mine.gold >= cost) { State.mine.gold -= cost; State.forest.unlocked = true; this.travelTo('forest'); }
+    enterChristmasWorld: function() {
+        State.prevWorld = State.activeWorld;
+        this.travelTo('christmas');
     },
-    tryUnlockDesert: function(cost) {
-        if(State.forest.gold >= cost) { State.forest.gold -= cost; State.desert.unlocked = true; this.travelTo('desert'); }
+    leaveChristmasWorld: function() {
+        this.travelTo(State.prevWorld || 'mine');
     },
-    tryUnlockIce: function(cost) {
-        if(State.desert.gold >= cost) { State.desert.gold -= cost; State.ice.unlocked = true; this.travelTo('ice'); }
+    
+    // Trade Logic
+    trade: function(percent) {
+        // Simplistic trade implementation
+        const sellType = document.getElementById('ex-sell-select').value;
+        const buyType = document.getElementById('ex-buy-select').value;
+        if(sellType === buyType) return;
+        
+        let sellSource = State[sellType];
+        let buySource = State[buyType];
+        let amount = Math.floor(sellSource.gold * percent);
+        
+        if(amount > 0) {
+            sellSource.gold -= amount;
+            // Conversion rate simplified: 1000:1 for higher tier
+            let rate = 0.001; 
+            buySource.gold += Math.floor(amount * rate);
+            UI.update();
+            UI.updateExchangeRate();
+        }
     }
 };
