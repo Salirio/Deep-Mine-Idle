@@ -56,9 +56,12 @@ export const GameLogic = {
         let act = this.getActive();
         
         if(!isAuto) {
-            AudioController.init();
+            AudioController.init(); 
             AudioController.playHit(State.activeWorld);
             State.stats.totalClicks++;
+            
+            // Mark block as touched by player for artifact chance
+            act.wasTouchedByPlayer = true;
             
             if (State.impactX === null) {
                 State.impactX = x; State.impactY = y;
@@ -118,12 +121,81 @@ export const GameLogic = {
         
         if(act.depth > act.maxDepth) act.maxDepth = act.depth;
         
+        // --- ARTIFACT LOGIC ---
+        let dropArtifact = false;
+        
+        // 1. Check Dev Override (Vorrang)
+        if (State.forceNextArtifactDrop) {
+            dropArtifact = true;
+            State.forceNextArtifactDrop = false; // Reset flag
+        } 
+        // 2. Check Standard Chance
+        else if (act.depth > 200 && State.activeWorld !== 'christmas' && act.wasTouchedByPlayer) {
+             // 1 : 12000 Chance
+             if(Math.random() < (1 / 12000)) {
+                 dropArtifact = true;
+             }
+        }
+
+        if (dropArtifact) {
+            // Pick a random artifact not yet owned
+            // First try current world, then global
+            const allArts = Worlds.artifacts.filter(a => a.world !== 'christmas'); 
+            const worldArts = allArts.filter(a => a.world === State.activeWorld);
+            
+            let candidates = worldArts.filter(a => !State.artifactsFound.includes(a.id));
+            if(candidates.length === 0) {
+                // If all in world found, try global
+                candidates = allArts.filter(a => !State.artifactsFound.includes(a.id));
+            }
+
+            if(candidates.length > 0) {
+                let art = candidates[Math.floor(Math.random() * candidates.length)];
+                State.artifactsFound.push(art.id);
+                UI.showArtifactToast(art);
+                this.saveGame();
+            }
+        }
+        
+        // Reset touch flag for next block
+        act.wasTouchedByPlayer = false;
+
+        // --- CHRISTMAS EVENT END ---
+        // If we just beat the boss at 400 (depth is now 401)
+        if (State.activeWorld === 'christmas' && act.depth > 400) {
+             this.finishChristmasEvent();
+        }
+
+        // Event Check (Snowflakes)
         if(State.activeEvent === 'xmas' || State.activeWorld === 'christmas') {
             if(Math.random() > 0.7) State.snowflakes++;
         }
 
         UI.generateBlockTexture();
         this.saveGame();
+    },
+    
+    finishChristmasEvent: function() {
+         // Reward Artifact
+         if(!State.artifactsFound.includes('christmas_star')) {
+             State.artifactsFound.push('christmas_star');
+             // Show Artifact Toast
+             const star = Worlds.artifacts.find(a => a.id === 'christmas_star');
+             if(star) UI.showArtifactToast(star);
+         }
+         
+         // Show Full Screen Win Overlay
+         const overlay = document.getElementById('event-win-overlay');
+         if(overlay) {
+             overlay.style.display = 'flex';
+             // Leave after 5 seconds
+             setTimeout(() => {
+                 overlay.style.display = 'none';
+                 this.leaveChristmasWorld();
+             }, 5000);
+         } else {
+             this.leaveChristmasWorld();
+         }
     },
     
     buyMiner: function(index) {
@@ -146,13 +218,13 @@ export const GameLogic = {
             UI.updateActiveMiners();
         }
     },
-
-    // --- NEW: Handle Bot Skill Upgrades ---
+    
+    // --- WIEDERHERGESTELLT: Bot Skill Kauf ---
     buyBotSkill: function(minerIndex, skillType) {
         let act = this.getActive();
         let m = act.miners[minerIndex];
         if(!m) return;
-        
+
         // Calculate points
         let totalPoints = Math.floor(m.level / 20);
         let usedPoints = (m.skills.dps || 0) + (m.skills.cost || 0) + (m.skills.synergy || 0);
@@ -161,12 +233,13 @@ export const GameLogic = {
         if(available > 0) {
             if(!m.skills[skillType]) m.skills[skillType] = 0;
             m.skills[skillType]++;
-            
+
             // Re-render UI
             UI.renderBotSkillTree(minerIndex);
             UI.update();
         }
     },
+    // ------------------------------------------
 
     buyPickUpgrade: function() {
         let act = this.getActive(); 
@@ -220,7 +293,10 @@ export const GameLogic = {
     
     travelTo: function(world) {
         if(world === State.activeWorld) return;
+        
+        // Audio Change
         AudioController.playBGM(world);
+
         State.activeWorld = world; 
         UI.generateBlockTexture();
         UI.renderMinerList();
@@ -280,7 +356,10 @@ export const GameLogic = {
                 const data = JSON.parse(jsonString);
                 if(data.state) Object.assign(State, data.state);
                 if(data.avatar) Object.assign(Avatar, data.avatar);
+                
+                // Resume BGM if loaded
                 setTimeout(() => AudioController.playBGM(State.activeWorld), 1000);
+
                 return true;
             } catch(e) { return false; }
         }
@@ -306,7 +385,9 @@ export const GameLogic = {
     },
     
     toggleEvent: function(ev) {
+        // UI Toggle Logic
         const btn = document.getElementById('xmas-toggle');
+        
         if (State.activeEvent === ev) {
             State.activeEvent = null;
             document.body.classList.remove('theme-xmas');
@@ -326,13 +407,20 @@ export const GameLogic = {
 
     enterChristmasWorld: function() { 
         State.prevWorld = State.activeWorld; 
+        
+        // Show Transition
         const trans = document.getElementById('gift-transition');
         if(trans) {
             trans.style.display = 'flex';
-            UI.closeEventCenter();
+            UI.closeEventCenter(); // Close modal
+            
+            // Wait for animation
             setTimeout(() => {
                 this.travelTo('christmas'); 
-                setTimeout(() => { trans.style.display = 'none'; }, 500);
+                // Hide after travel
+                setTimeout(() => {
+                    trans.style.display = 'none';
+                }, 500);
             }, 2000);
         } else {
             this.travelTo('christmas');
@@ -352,7 +440,7 @@ export const GameLogic = {
         
         if(amount > 0) {
             sellSource.gold -= amount;
-            let rate = 0.001; 
+            let rate = 0.001; // 1000 to 1
             buySource.gold += Math.floor(amount * rate);
             UI.update();
             UI.updateExchangeRate();
