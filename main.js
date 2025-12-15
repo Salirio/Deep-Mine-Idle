@@ -199,4 +199,41 @@ function logicLoop() {
     if(dps > 0) {
         GameLogic.hitBlock(0, 0, dps/10, true);
     }
+
 }
+
+/* --- SAFE MOBILE SWITCHER --- */
+window.appSwitchTab = function(tab) {
+    // 1. Visuelles Feedback für Buttons
+    document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+    const activeBtn = document.getElementById('nav-' + tab);
+    if(activeBtn) activeBtn.classList.add('active');
+
+    // 2. Container holen
+    const left = document.getElementById('left-col');
+    const right = document.getElementById('right-col');
+
+    // 3. Logik
+    if (tab === 'menu') {
+        // Menu öffnet einfach nur die Settings (Overlay)
+        // Wir lassen den Hintergrund so wie er war
+        if(window.openSettings) window.openSettings();
+        return; 
+    }
+
+    // Modal schließen falls offen, damit wir die Tabs sehen
+    if(window.closeSettings) window.closeSettings();
+
+    if (tab === 'mine') {
+        left.style.display = 'flex';  // Zeige Spiel
+        right.style.display = 'none'; // Verstecke Liste
+    } 
+    else {
+        // Für 'miners' oder 'skills'
+        left.style.display = 'none';  // Verstecke Spiel
+        right.style.display = 'flex'; // Zeige Liste
+        
+        // Nutze deine existierende Tab-Funktion für den Inhalt
+        if(window.switchMainTab) window.switchMainTab(tab);
+    }
+};
