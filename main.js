@@ -201,10 +201,14 @@ function logicLoop() {
     }
 
 }
+/* --- FINALER, KONSOLIDIERTER MOBILE SWITCHER (main.js) --- */
 
-/* --- appSwitchTab in main.js (Muss die neueste Version sein) --- */
+// Hole die Navigationsleiste für Animationen
+const mobileNav = document.getElementById('mobile-bottom-nav');
+
+// --- 1. UMSCHALT-LOGIK (window.appSwitchTab) ---
 window.appSwitchTab = function(tab) {
-    // 1. Visuelles Feedback
+    // 1. Visuelles Feedback (Aktiven Button markieren)
     document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
     const activeBtn = document.getElementById('nav-' + tab);
     if(activeBtn) activeBtn.classList.add('active');
@@ -212,17 +216,18 @@ window.appSwitchTab = function(tab) {
     // 2. Container
     const left = document.getElementById('left-col');
     const right = document.getElementById('right-col');
-
-    // 3. Logic
-    if (tab === 'menu') {
-        // Öffne Einstellungsmodal als mobiles Menü
-        if(window.openSettings) window.openSettings();
-        return; 
-    }
-
-    // Schließe Modals, wenn wir zu einem Game-Tab wechseln
+    
+    // 3. Modals schließen (wichtig beim Wechsel von 'menu')
     if(window.closeSettings) window.closeSettings();
     if(window.closeWorldTravel) window.closeWorldTravel(); 
+
+    // 4. Logic
+    if (tab === 'menu') {
+        if(window.openSettings) window.openSettings();
+        // Behält die vorherige Ansicht im Hintergrund bei
+        if(left.style.display !== 'none') { left.style.display = 'flex'; } else { right.style.display = 'flex'; }
+        return; 
+    }
 
     if (tab === 'mine') {
         // DIG TAB
@@ -237,19 +242,38 @@ window.appSwitchTab = function(tab) {
         // Stellt sicher, dass der richtige Inhalt in #right-col geladen wird
         if(window.switchMainTab) window.switchMainTab(tab); 
         
-        // WICHTIG: Stelle sicher, dass die Miner-Liste initial gerendert wird
+        // WICHTIG: Miner-Liste muss im miners-Tab gerendert werden
         if(tab === 'miners' && window.UI && window.UI.renderMinerList) {
              window.UI.renderMinerList();
         }
     }
 };
 
-// FIX: Beim Start muss die Funktion einmal aufgerufen werden, um die Ansicht zu säubern.
-const originalStart = App.startGame;
+// --- 2. PATCHES FÜR LOGIN, START UND LOGOUT ---
+
+// Patch für App Start / Loading Sequence
+const originalStartLoadingSequence = App.startLoadingSequence;
+App.startLoadingSequence = function() {
+    if (mobileNav) mobileNav.classList.add('nav-hidden'); // Nav ausblenden
+    originalStartLoadingSequence.apply(App);
+};
+
+// Patch für Game Start (WICHTIG: Nur einmal patchen!)
+const originalStartGame = App.startGame;
 App.startGame = function() {
-    originalStart.apply(App); 
+    originalStartGame.apply(App); // Führt die ursprüngliche startGame Logik aus
+    
     if (window.innerWidth <= 900) {
-        window.appSwitchTab('mine'); // Wählt den DIG-Tab als Startansicht
+        // Navigationsleiste einblenden
+        if (mobileNav) mobileNav.classList.remove('nav-hidden'); 
+        // Wählt den DIG-Tab als Startansicht (reinigt die Ansicht)
+        window.appSwitchTab('mine'); 
     }
 };
 
+// Patch für Logout
+const originalLogout = App.logout;
+App.logout = function() {
+    if (mobileNav) mobileNav.classList.add('nav-hidden'); // Nav ausblenden
+    originalLogout.apply(App);
+};
