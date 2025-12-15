@@ -113,7 +113,8 @@ export const GameLogic = {
     },
 
     openBotSkills: function(index) {
-        alert("Skills Modal would open here for Miner " + index);
+        // Placeholder for skills modal
+        console.log("Skills Modal for Miner " + index);
     },
     
     travelTo: function(world) {
@@ -123,7 +124,6 @@ export const GameLogic = {
         UI.renderMinerList();
         UI.updateActiveMiners();
         UI.update();
-        alert("Travelled to " + world);
     },
 
     saveGame: function() {
@@ -140,16 +140,13 @@ export const GameLogic = {
             return true;
         }
         return false;
-    }
+    }, // <--- THIS COMMA WAS MISSING!
 
-// Add to logic.js inside GameLogic = { ... }
-    
     clickBubble: function() {
         let rand = Math.random();
         let act = this.getActive();
         
         if (rand < 0.4) {
-            // activateBuff('str') - simplified here
             act.buffs.str = Date.now() + 15000;
             UI.spawnFloater(window.innerWidth/2, window.innerHeight/2, "STÄRKE BOOST!", "#9b59b6");
         } else if (rand < 0.8) {
@@ -184,7 +181,6 @@ export const GameLogic = {
         UI.update();
     },
 
-    // Add tryUnlock wrappers
     tryUnlockForest: function(cost) {
         if(State.mine.gold >= cost) { State.mine.gold -= cost; State.forest.unlocked = true; this.travelTo('forest'); }
     },
@@ -193,5 +189,5 @@ export const GameLogic = {
     },
     tryUnlockIce: function(cost) {
         if(State.desert.gold >= cost) { State.desert.gold -= cost; State.ice.unlocked = true; this.travelTo('ice'); }
-    },
+    }
 };
