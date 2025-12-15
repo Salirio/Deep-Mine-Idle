@@ -31,6 +31,9 @@ export const UI = {
                 LogicRef.hitBlock(e.clientX - rect.left, e.clientY - rect.top);
             });
         }
+        
+        // Initial Avatar Draw
+        this.renderAvatarIcon();
     },
 
     // --- MODAL HELPERS ---
@@ -42,28 +45,115 @@ export const UI = {
     
     openPrestige: function() { 
         document.getElementById('prestige-modal').style.display = 'flex';
-        // Update Prestige UI Values
         document.getElementById('prestige-reward-amount').innerText = Math.floor(State[State.activeWorld].depth / 20);
         document.getElementById('prestige-req').innerText = 50 + (State[State.activeWorld].prestigeCount * 20);
+        
+        // Dance Floor Animation
+        const floor = document.getElementById('dance-floor');
+        while(floor.children.length > 1) floor.removeChild(floor.lastChild);
+        let count = 0; let act = State[State.activeWorld]; let conf = Worlds[State.activeWorld];
+        act.miners.forEach((m, i) => {
+            if (m.level > 0 && count < 6) { 
+                let type = conf.miners[i];
+                let div = document.createElement('div'); div.className = "dancer";
+                div.innerHTML = `<div class="bot-body" style="background-color: ${type.color}"><div class="bot-arm"></div></div>`;
+                div.style.left = (Math.random() * 80 + 10) + "%"; div.style.top = (Math.random() * 60 + 20) + "px";
+                floor.appendChild(div); count++;
+            }
+        });
     },
     closePrestige: () => document.getElementById('prestige-modal').style.display = 'none',
     
-    openAetheriumShop: () => document.getElementById('aetherium-modal').style.display = 'flex',
+    openAetheriumShop: function() {
+        document.getElementById('aetherium-modal').style.display = 'flex';
+        const grid = document.getElementById('aetherium-list');
+        grid.innerHTML = "";
+        let act = State[State.activeWorld];
+        let conf = Worlds[State.activeWorld];
+        document.getElementById('aetherium-shop-display').innerText = act.prestige;
+
+        // Click Upgrade
+        let cLvl = act.clickUpgrade || 0;
+        let cCost = 1 + (cLvl * 2);
+        let clickEl = document.createElement('div'); clickEl.className = "shop-item";
+        clickEl.style.border = "2px solid #e74c3c";
+        clickEl.innerHTML = `<div style="font-size:10px; color:#e74c3c;">TITANEN GRIFF</div><div style="font-size:20px;">💪 ${cLvl}</div><div class="item-price">${cCost} 💎</div>`;
+        clickEl.onclick = () => LogicRef.buyAetheriumClickUpgrade(); // Needs Logic Bridge
+        grid.appendChild(clickEl);
+
+        conf.miners.forEach((type, index) => {
+            let lvl = act.minerUpgrades[index] || 0;
+            let cost = 1 + (lvl * 2);
+            let el = document.createElement('div'); el.className = "shop-item";
+            el.innerHTML = `<div style="font-size:10px;">${type.name}</div><div style="font-size:18px;">⚡ ${lvl}</div><div class="item-price">${cost} 💎</div>`;
+            el.onclick = () => LogicRef.buyAetheriumUpgrade(index); // Needs Logic Bridge
+            grid.appendChild(el);
+        });
+    },
     closeAetheriumShop: () => document.getElementById('aetherium-modal').style.display = 'none',
     
-    openAchievements: () => document.getElementById('achieve-modal').style.display = 'flex',
+    openAchievements: function() {
+        document.getElementById('achieve-modal').style.display = 'flex';
+        const list = document.getElementById('achieve-list');
+        list.innerHTML = "";
+        Worlds.achievements.forEach(ach => {
+            let tier = State.achievementLevels[ach.id] || 0;
+            let goal = Math.floor(ach.baseGoal * Math.pow(ach.scale, tier));
+            if(ach.type === 'prestige') goal = ach.baseGoal + tier;
+            
+            let current = 0;
+            let act = State[State.activeWorld];
+            if(ach.type === 'depth') current = act.depth;
+            if(ach.type === 'gold') current = act.gold;
+            if(ach.type === 'clicks') current = State.stats.totalClicks;
+            
+            let div = document.createElement('div'); div.className = "achieve-row";
+            div.innerHTML = `<div class="achieve-icon">${ach.icon}</div><div><strong>${ach.name} (${tier+1})</strong><br><small>${current} / ${goal}</small></div>`;
+            list.appendChild(div);
+        });
+    },
     closeAchievements: () => document.getElementById('achieve-modal').style.display = 'none',
     
-    openPetShop: () => document.getElementById('pet-modal').style.display = 'flex',
+    openPetShop: function() {
+        document.getElementById('pet-modal').style.display = 'flex';
+        const list = document.getElementById('pet-list');
+        list.innerHTML = "";
+        document.getElementById('trophy-display').innerText = State.trophies;
+        Worlds.pets.forEach(pet => {
+            let isOwned = State.ownedPets.includes(pet.id);
+            let div = document.createElement('div');
+            div.className = `shop-item ${isOwned ? 'owned' : ''}`;
+            div.innerHTML = `<div style="font-size:24px;">${pet.icon||'🐾'}</div><div class="item-name">${pet.name}</div><div class="item-price">${isOwned ? 'Besitz' : pet.cost + ' 🏆'}</div>`;
+            div.onclick = () => { if(!isOwned && State.trophies >= pet.cost) { State.trophies -= pet.cost; State.ownedPets.push(pet.id); UI.openPetShop(); } };
+            list.appendChild(div);
+        });
+    },
     closePetShop: () => document.getElementById('pet-modal').style.display = 'none',
     
-    openExchange: () => document.getElementById('exchange-modal').style.display = 'flex',
+    openExchange: function() {
+        document.getElementById('exchange-modal').style.display = 'flex';
+        this.updateExchangeRate();
+    },
     closeExchange: () => document.getElementById('exchange-modal').style.display = 'none',
     
     openEventCenter: () => document.getElementById('event-modal').style.display = 'flex',
     closeEventCenter: () => document.getElementById('event-modal').style.display = 'none',
     
-    openEventShop: () => document.getElementById('event-shop-modal').style.display = 'flex',
+    openEventShop: function() { 
+        document.getElementById('event-shop-modal').style.display = 'flex'; 
+        this.currentShopTab = 'christmas'; // Hack for getting items
+        // Simplified render for event shop
+        const grid = document.getElementById('event-shop-grid'); grid.innerHTML = "";
+        Worlds.cosmetics.hat.forEach(item => {
+            if(item.currency === 'snowflakes') {
+                let el = document.createElement('div'); el.className = "shop-item";
+                let owned = Avatar.unlocked.includes(item.id);
+                el.innerHTML = `<div class="item-name">${item.name}</div><div class="item-price">${owned ? 'Besitz' : item.cost + ' ❄️'}</div>`;
+                el.onclick = () => { if(!owned && State.snowflakes >= item.cost) { State.snowflakes -= item.cost; Avatar.unlocked.push(item.id); UI.openEventShop(); } };
+                grid.appendChild(el);
+            }
+        });
+    },
     closeEventShop: () => document.getElementById('event-shop-modal').style.display = 'none',
 
     openPlayerCard: function() { 
@@ -76,34 +166,76 @@ export const UI = {
     // --- OTHER UI FUNCTIONS ---
     updateName: function() { Avatar.name = document.getElementById('player-name-input').value; },
     switchTab: function(tab) { this.currentShopTab = tab; this.renderShop(); },
+    
     buyOrEquip: function(item) {
-        if(!Avatar.unlocked.includes(item.id)) {
-            // Simplistic free buy for now to fix errors, real logic needs currency check
-            Avatar.unlocked.push(item.id);
+        if (Avatar.unlocked.includes(item.id)) {
+            Avatar.equipped[this.currentShopTab] = item.id;
+        } else {
+            // Check Currency
+            let canBuy = false;
+            if (item.currency === 'silk' && State.silk >= item.cost) { State.silk -= item.cost; canBuy = true; }
+            else if (item.currency === 'snowflakes' && State.snowflakes >= item.cost) { State.snowflakes -= item.cost; canBuy = true; }
+            else if (!item.currency && State.fabric >= item.cost) { State.fabric -= item.cost; canBuy = true; }
+            else if (item.cost === 0) canBuy = true;
+
+            if (canBuy) {
+                Avatar.unlocked.push(item.id);
+                Avatar.equipped[this.currentShopTab] = item.id;
+            }
         }
-        Avatar.equipped[this.currentShopTab] = item.id;
-        this.renderShop(); this.renderAvatarPreview();
+        this.renderShop(); this.renderAvatarPreview(); this.renderAvatarIcon();
     },
+    
     togglePerformance: function() {
         State.settings.animations = !State.settings.animations;
-        document.getElementById('anim-toggle').classList.toggle('active');
+        const btn = document.getElementById('anim-toggle');
+        if(btn) btn.classList.toggle('active');
+        this.updateActiveMiners();
     },
+    
     updateExchangeRate: function() {
-        // Visual update placeholder
-        document.getElementById('ex-rate-display').innerText = "Berechne...";
+        const sell = document.getElementById('ex-sell-select').value;
+        const buy = document.getElementById('ex-buy-select').value;
+        document.getElementById('ex-sell-balance').innerText = LogicRef.formatNumber(State[sell].gold);
+        document.getElementById('ex-buy-balance').innerText = LogicRef.formatNumber(State[buy].gold);
+        // Simple rate text
+        document.getElementById('ex-rate-display').innerText = "Kurs: Variabel"; 
     },
+    
     switchMainTab: function(tab) {
         if(tab === 'miners') {
             document.getElementById('miner-list').style.display = 'flex';
             document.getElementById('click-list').style.display = 'none';
+            document.getElementById('tab-miners').classList.add('active');
+            document.getElementById('tab-skills').classList.remove('active');
         } else {
             document.getElementById('miner-list').style.display = 'none';
             document.getElementById('click-list').style.display = 'flex';
+            document.getElementById('tab-miners').classList.remove('active');
+            document.getElementById('tab-skills').classList.add('active');
+            this.renderClickSkills();
         }
     },
+    
+    renderClickSkills: function() {
+        const list = document.getElementById('click-list');
+        list.innerHTML = "";
+        let conf = Worlds[State.activeWorld];
+        let act = State[State.activeWorld];
+        conf.clickSkills.forEach((skill, index) => {
+            let lvl = act.clickSkillLevels[index] || 0;
+            let cost = Math.floor(skill.baseCost * Math.pow(1.5, lvl));
+            let div = document.createElement('div'); div.className = "miner-card";
+            div.style.borderLeftColor = "#f1c40f";
+            div.innerHTML = `<div class="miner-icon-area">${skill.icon}</div><div class="miner-info"><h4>${skill.name} Lvl ${lvl}</h4><p>${skill.desc}</p></div><button class="miner-btn" onclick="GameLogic.buyClickSkill(${index})">Upgr<br>${LogicRef.formatNumber(cost)}</button>`;
+            list.appendChild(div);
+        });
+    },
+
     openBotSkills: function(index) {
         document.getElementById('bot-skill-modal').style.display = 'flex';
-        // Render bot info...
+        // Simplified view for now
+        document.getElementById('bot-skill-title').innerText = "BOT CONFIG " + index;
     },
     closeBotSkills: () => document.getElementById('bot-skill-modal').style.display = 'none',
 
@@ -111,6 +243,7 @@ export const UI = {
     update: function() {
         if (!LogicRef) return;
         const act = State[State.activeWorld];
+        const conf = Worlds[State.activeWorld];
         const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.innerText = txt; };
         
         setText('depthDisplay', act.depth);
@@ -122,18 +255,48 @@ export const UI = {
         if(hpBar) hpBar.style.width = hpPercent + "%";
         setText('hp-text-overlay', `${LogicRef.formatNumber(Math.max(0, act.currentHp))} / ${LogicRef.formatNumber(act.maxHp)}`);
 
-        // Miner Buttons
-        let conf = Worlds[State.activeWorld];
+        // Miner Buttons & Prices
         conf.miners.forEach((type, index) => {
             let m = act.miners[index];
+            
+            // Recalculate Cost Logic for Display
+            let costMult = 1;
+            if(State.artifactsFound && State.artifactsFound.includes('fossil')) costMult = 0.9;
+            if(m.skills && m.skills.cost) costMult -= (m.skills.cost * 0.02);
+            let baseCost = (m.level === 0) ? type.baseCost : Math.floor(type.baseCost * Math.pow(1.20, m.level));
+            let cost = Math.floor(baseCost * costMult);
+
             if(document.getElementById(`m-lvl-${index}`)) {
                 document.getElementById(`m-lvl-${index}`).innerText = "Lvl " + m.level;
-                let dpsVal = (m.level * type.basePower); // simplified calc
+                let milestoneBonus = Math.pow(2, Math.floor(m.level / 10));
+                let dpsVal = (m.level * type.basePower) * milestoneBonus;
                 document.getElementById(`m-dps-${index}`).innerHTML = LogicRef.formatNumber(dpsVal);
+                
+                // Update Button Text & State
+                let btn = document.getElementById(`m-btn-${index}`);
+                if(btn) {
+                    btn.innerHTML = (m.level===0 ? "Kaufen" : "Upgr") + "<br>" + LogicRef.formatNumber(cost);
+                    btn.disabled = act.gold < cost;
+                }
             }
         });
+        
+        // Tool Shop Buttons
+        let nextPick = conf.picks[act.pickLevel + 1];
+        let pickBtn = document.getElementById('btn-pick');
+        if (pickBtn) {
+            if (nextPick) { 
+                let pCost = nextPick.cost; 
+                pickBtn.innerHTML = `Upgrade: ${nextPick.name}<br><small>${LogicRef.formatNumber(pCost)} G</small>`;
+                pickBtn.disabled = act.gold < pCost;
+            } else { pickBtn.innerHTML = "MAX"; pickBtn.disabled = true; }
+        }
+        
+        setText('cost-tnt', LogicRef.formatNumber(act.costs.tnt));
+        setText('cost-str', LogicRef.formatNumber(act.costs.str));
+        setText('cost-min', LogicRef.formatNumber(act.costs.min));
+        setText('cost-od', LogicRef.formatNumber(act.costs.od));
 
-        // Loop render
         this.renderLoop();
     },
 
@@ -144,16 +307,21 @@ export const UI = {
         
         let sx=0, sy=0;
         if(State.settings.animations && this.shake>0) { 
-            sx=(Math.random()-0.5)*this.shake; 
-            sy=(Math.random()-0.5)*this.shake; 
-            this.shake*=0.9; 
-            if(this.shake<0.5) this.shake=0; 
+            sx=(Math.random()-0.5)*this.shake; sy=(Math.random()-0.5)*this.shake; 
+            this.shake*=0.9; if(this.shake<0.5) this.shake=0; 
         }
         
         this.ctx.save(); 
         this.ctx.translate(sx, sy); 
         this.ctx.drawImage(this.blockCanvas, 0, 0);
         
+        // Draw Pet
+        if(State.activePet) {
+            // Simplistic pet render
+            this.ctx.fillStyle = "#f1c40f"; 
+            this.ctx.beginPath(); this.ctx.arc(260, 60 + Math.sin(Date.now()*0.005)*5, 10, 0, Math.PI*2); this.ctx.fill();
+        }
+
         if (State.settings.animations) {
             for(let i=this.particles.length-1; i>=0; i--) {
                 let p = this.particles[i];
@@ -163,10 +331,8 @@ export const UI = {
             this.ctx.font = "bold 14px Courier New";
             for(let i=this.floaters.length-1; i>=0; i--) { 
                 let f = this.floaters[i]; 
-                this.ctx.fillStyle = f.color; 
-                this.ctx.fillText(f.text, f.x, f.y); 
-                f.y-=1; f.life-=0.02; 
-                if(f.life<=0) this.floaters.splice(i,1); 
+                this.ctx.fillStyle = f.color; this.ctx.fillText(f.text, f.x, f.y); 
+                f.y-=1; f.life-=0.02; if(f.life<=0) this.floaters.splice(i,1); 
             }
         }
         this.ctx.restore();
@@ -186,7 +352,6 @@ export const UI = {
         b.style.left = "-80px"; 
         b.onclick = () => { document.body.removeChild(b); cb(); };
         document.body.appendChild(b);
-        // Animation placeholder
         setTimeout(() => b.style.left = "110vw", 100);
         setTimeout(() => { if(b.parentNode) document.body.removeChild(b); }, 10000);
     },
@@ -196,7 +361,6 @@ export const UI = {
         let conf = Worlds[State.activeWorld];
         let mat = conf.materials[act.matIndex] || conf.materials[0];
         
-        // HP Logic
         let rawHp = 2 * Math.pow(1.055, act.depth);
         act.maxHp = Math.floor(rawHp);
         act.currentHp = act.maxHp;
@@ -204,30 +368,167 @@ export const UI = {
         this.blockCtx.clearRect(0,0,320,320);
         this.blockCtx.fillStyle = `rgb(${mat.color.join(',')})`;
         this.blockCtx.fillRect(0, 0, 320, 320);
+        
+        // Loop Border
+        if(act.loopCount > 0) {
+            this.blockCtx.strokeStyle = "rgba(0,0,0,0.3)"; this.blockCtx.lineWidth = 15;
+            this.blockCtx.strokeRect(0,0,320,320);
+        }
     },
     
+    // --- THIS RESTORES THE MINER ANIMATIONS ---
+    updateActiveMiners: function() {
+        const layer = document.getElementById('active-miners-layer'); 
+        if(!layer || !State.settings.animations) { if(layer) layer.innerHTML = ""; return; }
+        layer.innerHTML = ""; 
+        let act = State[State.activeWorld];
+        let conf = Worlds[State.activeWorld];
+        act.miners.forEach((m, i) => {
+            if (m.level > 0) {
+                let side = Math.floor(i / 3); let posInSide = i % 3; let type = conf.miners[i];
+                let div = document.createElement('div'); div.className = "field-miner anim-active";
+                div.innerHTML = `<div class="bot-body" style="background-color: ${type.color}"><div class="bot-arm"></div></div>`;
+                let offset = 40 + (posInSide * 80); 
+                if (side === 0) { div.style.bottom = "10px"; div.style.left = offset + "px"; } 
+                else if (side === 1) { div.style.left = "10px"; div.style.top = offset + "px"; div.style.transform = "rotate(90deg)"; } 
+                else if (side === 2) { div.style.right = "10px"; div.style.top = offset + "px"; div.style.transform = "rotate(-90deg)"; } 
+                else { div.style.top = "10px"; div.style.left = offset + "px"; div.style.transform = "rotate(180deg)"; }
+                layer.appendChild(div);
+            }
+        });
+    },
+
     renderMinerList: function() {
         if (!LogicRef) return;
         const list = document.getElementById('miner-list'); 
         list.innerHTML = ""; 
         let conf = Worlds[State.activeWorld]; 
+        let act = State[State.activeWorld];
         
         conf.miners.forEach((type, index) => {
-            let div = document.createElement('div'); div.className = "miner-card";
+            let m = act.miners[index];
+            let lvl = m.level;
+            let div = document.createElement('div'); div.className = "miner-card"; div.id = `miner-card-${index}`;
             div.innerHTML = `
+            <div class="miner-icon-area">
+                <div class="bot-body" id="bot-body-${index}"><div class="bot-arm"></div></div>
+            </div>
             <div class="miner-info">
-                <h4 style="color:${type.color}">${type.name} <span id="m-lvl-${index}" style="color:#fff; font-size:10px;">Lvl 0</span></h4>
+                <h4 style="color:${type.color}">${type.name} <span id="m-lvl-${index}" style="color:#fff; font-size:10px;">Lvl ${lvl}</span></h4>
                 <p>DPS: <span id="m-dps-${index}">0</span></p>
             </div>
             <div class="miner-actions">
-                <button class="miner-btn" id="m-btn-${index}" onclick="GameLogic.buyMiner(${index})">Kaufen</button>
+                <button class="miner-btn" id="m-btn-${index}" onclick="GameLogic.buyMiner(${index})">Loading</button>
                 <div class="gear-btn-square" onclick="GameLogic.openBotSkills(${index})">⚙️</div>
             </div>`;
             list.appendChild(div);
         });
     },
     
-    updateActiveMiners: function() {}, // Placeholder
-    renderAvatarPreview: function() {}, // Placeholder
-    renderShop: function() {} // Placeholder
+    // --- RESTORED SHOP RENDERING ---
+    renderShop: function() {
+        const grid = document.getElementById('shop-grid'); 
+        if(!grid) return;
+        grid.innerHTML = "";
+        grid.style.display = 'grid'; // Reset layout
+
+        if(this.currentShopTab === 'stats') {
+            grid.style.display = 'flex'; grid.style.flexDirection = 'column';
+            const s = State.stats;
+            const rows = [
+                { l: "Gesamt Klicks", v: s.totalClicks },
+                { l: "Gold gesamt", v: LogicRef.formatNumber(s.totalGold) },
+                { l: "Spielzeit", v: ((Date.now() - s.startTime)/60000).toFixed(1) + " Min" }
+            ];
+            rows.forEach(r => {
+                let div = document.createElement('div'); div.className = "stat-list-row";
+                div.innerHTML = `<span>${r.l}</span> <span class="stat-val">${r.v}</span>`;
+                grid.appendChild(div);
+            });
+            return;
+        }
+
+        if(this.currentShopTab === 'artifacts') {
+            Worlds.artifacts.forEach(art => {
+                let found = State.artifactsFound.includes(art.id);
+                let div = document.createElement('div'); div.className = `artifact-card ${found ? 'found' : 'locked'}`;
+                div.innerHTML = `<div class="artifact-icon">${found ? art.icon : '❓'}</div><div>${found ? art.name : '???'}</div><div style="font-size:9px;color:#aaa;">${art.bonus}</div>`;
+                grid.appendChild(div);
+            });
+            return;
+        }
+
+        // Cosmetics
+        const items = Worlds.cosmetics[this.currentShopTab] || [];
+        items.forEach(item => {
+            let owned = Avatar.unlocked.includes(item.id);
+            let equipped = Avatar.equipped[this.currentShopTab] === item.id;
+            let el = document.createElement('div'); el.className = `shop-item ${owned?'owned':''} ${equipped?'equipped':''}`;
+            el.innerHTML = `<div class="item-name">${item.name}</div><div class="item-price">${equipped ? 'An' : (owned ? 'Wählen' : item.cost + ' 🧶')}</div>`;
+            el.onclick = () => this.buyOrEquip(item);
+            grid.appendChild(el);
+        });
+    },
+
+    renderAvatarPreview: function() {
+        const c = document.getElementById('avatar-preview-canvas');
+        if(c) this.drawAvatar(c.getContext('2d'), 400, 600);
+    },
+    renderAvatarIcon: function() {
+        const c = document.getElementById('avatar-canvas-icon');
+        if(c) this.drawAvatar(c.getContext('2d'), 128, 128);
+    },
+
+    // --- AVATAR DRAWING ENGINE (RESTORED) ---
+    drawAvatar: function(ctx, w, h) {
+        ctx.clearRect(0,0,w,h);
+        let cx = w/2; let cy = h/2; let scale = w / 24; 
+        const roundRect = (x, y, w, h, r) => { ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill(); };
+        
+        const get = (cat) => {
+            let id = Avatar.equipped[cat];
+            let item = Worlds.cosmetics[cat].find(i => i.id === id);
+            return item || { id: 'none', color: '#000' };
+        };
+
+        let body = get('body'); let legs = get('legs'); let hat = get('hat');
+
+        // Wings
+        if(Avatar.equipped.wings !== 'none') {
+            ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(cx-8*scale, cy-4*scale, 6*scale, 3*scale, -0.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx+8*scale, cy-4*scale, 6*scale, 3*scale, 0.5, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Body
+        ctx.fillStyle = body.color || '#7f8c8d';
+        roundRect(cx - 4.5*scale, cy - 2*scale, 9*scale, 9*scale, 1*scale);
+        
+        // Head
+        ctx.fillStyle = "#ffccaa";
+        roundRect(cx - 3.5*scale, cy - 8.5*scale, 7*scale, 7*scale, 1.5*scale);
+        
+        // Face
+        ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#000";
+        ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 0.4*scale, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 0.4*scale, 0, Math.PI*2); ctx.fill();
+
+        // Legs
+        ctx.fillStyle = legs.color || '#2980b9';
+        roundRect(cx - 3.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale);
+        roundRect(cx + 0.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale);
+
+        // Arms
+        ctx.fillStyle = body.color || '#7f8c8d';
+        roundRect(cx - 6.5*scale, cy - 1.5*scale, 2.5*scale, 7.5*scale, 1*scale);
+        roundRect(cx + 4*scale, cy - 1.5*scale, 2.5*scale, 7.5*scale, 1*scale);
+        
+        // Hat
+        if(hat.id !== 'none') {
+            ctx.fillStyle = hat.color || '#fff';
+            roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale);
+        }
+    }
 };
