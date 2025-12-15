@@ -202,43 +202,54 @@ function logicLoop() {
 
 }
 
-// --- MOBILE TAB SWITCHER ---
+/* --- appSwitchTab in main.js (Muss die neueste Version sein) --- */
 window.appSwitchTab = function(tab) {
-    // 1. Buttons aktualisieren (Farbe ändern)
+    // 1. Visuelles Feedback
     document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
-    const btn = document.getElementById('nav-' + tab);
-    if(btn) btn.classList.add('active');
+    const activeBtn = document.getElementById('nav-' + tab);
+    if(activeBtn) activeBtn.classList.add('active');
 
-    // 2. Container holen
+    // 2. Container
     const left = document.getElementById('left-col');
     const right = document.getElementById('right-col');
 
-    // 3. Logik
+    // 3. Logic
     if (tab === 'menu') {
+        // Öffne Einstellungsmodal als mobiles Menü
         if(window.openSettings) window.openSettings();
         return; 
     }
 
-    // Modal schließen, falls offen
+    // Schließe Modals, wenn wir zu einem Game-Tab wechseln
     if(window.closeSettings) window.closeSettings();
+    if(window.closeWorldTravel) window.closeWorldTravel(); 
 
     if (tab === 'mine') {
-        left.style.display = 'flex';  // Zeige Spiel
-        right.style.display = 'none'; // Verstecke Liste
+        // DIG TAB
+        left.style.display = 'flex';
+        right.style.display = 'none';
     } 
-    else {
-        // 'miners' oder 'skills'
-        left.style.display = 'none';  // Verstecke Spiel
-        right.style.display = 'flex'; // Zeige Liste
+    else if (tab === 'miners' || tab === 'skills') {
+        // CREW / SKILLS TABS
+        left.style.display = 'none';
+        right.style.display = 'flex';
+
+        // Stellt sicher, dass der richtige Inhalt in #right-col geladen wird
+        if(window.switchMainTab) window.switchMainTab(tab); 
         
-        // Inneren Tab umschalten (Logic existiert schon)
-        if(window.switchMainTab) window.switchMainTab(tab);
+        // WICHTIG: Stelle sicher, dass die Miner-Liste initial gerendert wird
+        if(tab === 'miners' && window.UI && window.UI.renderMinerList) {
+             window.UI.renderMinerList();
+        }
     }
 };
 
-// Start-Fix: Auf Handy direkt "DIG" anzeigen, falls die Seite geladen wird
-if(window.innerWidth <= 900) {
-    // Kurze Verzögerung, um sicherzustellen, dass alle Elemente geladen sind
-    setTimeout(() => window.appSwitchTab('mine'), 100);
-}
+// FIX: Beim Start muss die Funktion einmal aufgerufen werden, um die Ansicht zu säubern.
+const originalStart = App.startGame;
+App.startGame = function() {
+    originalStart.apply(App); 
+    if (window.innerWidth <= 900) {
+        window.appSwitchTab('mine'); // Wählt den DIG-Tab als Startansicht
+    }
+};
 
