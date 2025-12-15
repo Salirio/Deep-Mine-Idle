@@ -686,95 +686,79 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
 
 /* --- MOBILE / TABLET RESPONSIVENESS --- */
 @media (max-width: 900px) {
-    /* 1. Stack the Main Game Columns Vertically */
-    #main-container {
-        flex-direction: column;
-        height: auto;
-        overflow-y: auto;
-        padding: 5px;
-    }
-
-    /* 2. Make Columns Full Width */
-    #left-col, #right-col {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    /* 3. Center the Game Canvas */
-    #left-col {
-        align-items: center;
-    }
-
-    /* 4. Ensure Tool Shop fits */
-    #tool-shop {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* 5. Fix the Right Column (Miner List) scrolling */
-    #right-col {
-        height: 500px;
-        margin-bottom: 20px;
-    }
-
-    /* 6. Force Modals to fit small screens */
-    .modal-content {
-        width: 95% !important;
-        height: auto !important;
-        max-height: 95vh;
-        flex-direction: column !important;
-        padding: 10px !important;
-        overflow-y: auto;
-    }
-
-    /* 7. Special Fix for the Giant Player Card */
-    #player-modal .modal-content {
-        width: 95% !important;
-    }
-    .modal-left {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #444;
-        padding-bottom: 15px;
-        margin-bottom: 15px;
-    }
-    /* Hide giant avatar preview on tiny screens if needed */
-    #avatar-preview-canvas {
-        max-width: 100%;
-        height: auto;
-    }
-}
-
-/* --- MOBILE SCROLL FIX --- */
-@media (max-width: 900px) {
-    /* 1. FORCE SCROLLING ON THE WHOLE PAGE */
+    /* 1. Basis-Setup: Scrollen verhindern, App-Feeling erzwingen */
     body {
-        height: auto !important;       /* Stop forcing 100% height */
-        overflow-y: auto !important;   /* ALLOW SCROLLING */
-        position: relative;            /* Reset positioning */
+        overflow: hidden !important;
+        position: fixed; width: 100%; height: 100%;
+        background: #111;
     }
 
-    /* 2. UNLOCK THE MAIN CONTAINER */
+    /* 2. Layout-Container anpassen (Platz für Leiste unten lassen) */
     #main-container {
-        height: auto !important;       /* Let it grow as long as needed */
-        overflow: visible !important;  /* Don't cut off content */
-        display: flex;
-        flex-direction: column;        /* Stack: Game first, Shop second */
-        padding-bottom: 50px;          /* Space at bottom for scrolling */
-    }
-
-    /* 3. FIX THE GAME AREA */
-    #left-col {
-        width: 100%;
-        flex: none;                    /* Don't shrink */
-        display: flex;
         flex-direction: column;
-        align-items: center;           /* Center the game canvas */
-        margin-bottom: 20px;           /* Space between Game and Miners */
+        width: 100%; height: calc(100% - 65px) !important;
+        padding: 0 !important; margin: 0 !important;
+        overflow: hidden; /* Wichtig: Container scrollt nicht, nur Inhalt */
     }
 
-    /* 4. ENSURE CANVAS IS VISIBLE */
-    #game-wrapper {
-        margin: 0 auto;                /* Force center */
+    /* 3. Spalten-Logik (SICHERHEITS-UPDATE) */
+    /* Standard: Links sichtbar (Spiel), Rechts unsichtbar (Shop) */
+    #left-col {
+        display: flex; /* Fallback: Immer sichtbar startend */
+        flex-direction: column; align-items: center;
+        width: 100%; height: 100%; overflow-y: auto;
+        padding: 10px; box-sizing: border-box;
     }
+
+    #right-col {
+        display: none; /* Standardmäßig versteckt */
+        width: 100%; height: 100%; overflow-y: auto;
+        padding: 10px; box-sizing: border-box;
+        border: none; margin: 0;
+    }
+
+    /* Hilfsklasse um Ansichten umzuschalten */
+    .view-hidden { display: none !important; }
+    .view-visible { display: flex !important; flex-direction: column; }
+
+    /* 4. Spiel-Elemente anpassen */
+    #game-wrapper {
+        width: 280px !important; height: 280px !important;
+        margin-top: 10px; flex-shrink: 0;
+    }
+    #tool-shop {
+        width: 100%; margin-top: 20px; padding-bottom: 20px;
+    }
+
+    /* 5. Desktop-Tabs ausblenden (wir nutzen ja die untere Leiste) */
+    .right-col-tabs { display: none !important; }
+
+    /* 6. Navigation Bar Styling */
+    #mobile-bottom-nav {
+        display: flex; position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
+        background: #1e1e1e; border-top: 2px solid #333; z-index: 99999;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5); padding-bottom: env(safe-area-inset-bottom);
+    }
+    .mobile-nav-item {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        color: #7f8c8d; cursor: pointer; transition: 0.2s;
+    }
+    .mobile-nav-item.active {
+        color: #f1c40f; background: rgba(255,255,255,0.05);
+        border-top: 3px solid #f1c40f;
+    }
+    .nav-icon { font-size: 20px; margin-bottom: 4px; }
+    .nav-label { font-size: 10px; font-weight: bold; }
+
+    /* 7. HUD Buttons aufräumen */
+    #avatar-btn { top: 10px; left: 10px; transform: scale(0.8); }
+    #fabric-display-container { top: 70px; left: 15px; }
+    #settings-btn { display: none; } /* Wir haben jetzt den Menu Tab! */
+    
+    /* Modals Fullscreen machen */
+    .modal-content { width: 100% !important; height: 100% !important; border-radius: 0; border: none; }
 }
+
+/* Auf PC verstecken wir die Leiste */
+#mobile-bottom-nav { display: none; }
