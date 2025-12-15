@@ -202,12 +202,12 @@ function logicLoop() {
 
 }
 
-/* --- SAFE MOBILE SWITCHER --- */
+// --- MOBILE TAB SWITCHER ---
 window.appSwitchTab = function(tab) {
-    // 1. Visuelles Feedback für Buttons
+    // 1. Buttons aktualisieren (Farbe ändern)
     document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
-    const activeBtn = document.getElementById('nav-' + tab);
-    if(activeBtn) activeBtn.classList.add('active');
+    const btn = document.getElementById('nav-' + tab);
+    if(btn) btn.classList.add('active');
 
     // 2. Container holen
     const left = document.getElementById('left-col');
@@ -215,13 +215,11 @@ window.appSwitchTab = function(tab) {
 
     // 3. Logik
     if (tab === 'menu') {
-        // Menu öffnet einfach nur die Settings (Overlay)
-        // Wir lassen den Hintergrund so wie er war
         if(window.openSettings) window.openSettings();
         return; 
     }
 
-    // Modal schließen falls offen, damit wir die Tabs sehen
+    // Modal schließen, falls offen
     if(window.closeSettings) window.closeSettings();
 
     if (tab === 'mine') {
@@ -229,11 +227,18 @@ window.appSwitchTab = function(tab) {
         right.style.display = 'none'; // Verstecke Liste
     } 
     else {
-        // Für 'miners' oder 'skills'
+        // 'miners' oder 'skills'
         left.style.display = 'none';  // Verstecke Spiel
         right.style.display = 'flex'; // Zeige Liste
         
-        // Nutze deine existierende Tab-Funktion für den Inhalt
+        // Inneren Tab umschalten (Logic existiert schon)
         if(window.switchMainTab) window.switchMainTab(tab);
     }
 };
+
+// Start-Fix: Auf Handy direkt "DIG" anzeigen, falls die Seite geladen wird
+if(window.innerWidth <= 900) {
+    // Kurze Verzögerung, um sicherzustellen, dass alle Elemente geladen sind
+    setTimeout(() => window.appSwitchTab('mine'), 100);
+}
+
