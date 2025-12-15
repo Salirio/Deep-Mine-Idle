@@ -271,6 +271,22 @@
     </div>
 </div>
 
+<div id="mobile-menu-modal" class="modal-overlay" onclick="if(event.target===this) closeMobileMenu()">
+    <div class="modal-content" style="width: 300px; padding: 20px; flex-direction: column;">
+        <div class="close-btn" onclick="closeMobileMenu()">×</div>
+        <div class="settings-header">HAUPTMENÜ</div>
+
+        <div id="mobile-menu-buttons" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+            </div>
+
+        <hr style="border: 1px solid #333; width: 100%; margin: 20px 0;">
+        
+        <button onclick="openSettings(); closeMobileMenu();" style="background:#34495e; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; width: 100%;">
+            ⚙️ EINSTELLUNGEN
+        </button>
+    </div>
+</div>
+    
 <!-- World Travel Modal -->
 <div id="world-modal" class="modal-overlay" onclick="if(event.target===this) closeWorldTravel()">
     <div class="modal-content">
@@ -516,3 +532,4 @@
 </body>
 
 </html>
+
