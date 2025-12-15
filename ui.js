@@ -5,7 +5,7 @@ import { AudioController } from './audio.js';
 let LogicRef = null;
 
 export const UI = {
-    particles: [], floaters: [], shake: 0, currentShopTab: 'hat',
+    particles: [], floaters: [], shake: 0, currentShopTab: 'hat', currentMainTab: 'miners',
     blockCtx: null, bgPatternCtx: null, ctx: null,
 
     init: function(GameLogic) {
@@ -33,83 +33,49 @@ export const UI = {
     openSettings: () => document.getElementById('settings-modal').style.display = 'flex',
     closeSettings: () => document.getElementById('settings-modal').style.display = 'none',
     
-    // UPDATED WORLD TRAVEL LOGIC
     openWorldTravel: function() {
         document.getElementById('world-modal').style.display = 'flex';
-        this.checkWorldUnlock(); // Call check whenever opened
+        this.checkWorldUnlock(); 
     },
     
     checkWorldUnlock: function() {
         const COST = 1e12; 
-        // Forest Unlock
-        const forestBtn = document.getElementById('btn-forest-action');
-        if (State.forest.unlocked) {
-            forestBtn.innerText = "REISEN"; 
-            forestBtn.className = "btn-travel"; 
-            forestBtn.onclick = () => LogicRef.travelTo('forest'); 
-            forestBtn.disabled = State.activeWorld === 'forest';
-        } else {
-            if (State.mine.maxDepth >= 1000) {
-                 forestBtn.innerText = "FREISCHALTEN (1 Bio. Gold)";
-                 forestBtn.className = "btn-unlock";
-                 forestBtn.onclick = () => LogicRef.tryUnlockForest(COST);
-                 forestBtn.disabled = State.mine.gold < COST;
+        const setupBtn = (id, world, prevWorld, currencyName) => {
+            const btn = document.getElementById(id);
+            if(!btn) return;
+            if (State[world].unlocked) {
+                btn.innerText = "REISEN"; 
+                btn.className = "btn-travel"; 
+                btn.onclick = () => LogicRef.travelTo(world); 
+                btn.disabled = State.activeWorld === world;
             } else {
-                 forestBtn.innerText = "Benötigt: Mine Tiefe 1000";
-                 forestBtn.disabled = true;
+                if (State[prevWorld].maxDepth >= 1000) {
+                     btn.innerText = `FREISCHALTEN (1 Bio. ${currencyName})`;
+                     btn.className = "btn-unlock";
+                     btn.onclick = () => {
+                         if(world === 'forest') LogicRef.tryUnlockForest(COST);
+                         if(world === 'desert') LogicRef.tryUnlockDesert(COST);
+                         if(world === 'ice') LogicRef.tryUnlockIce(COST);
+                     };
+                     btn.disabled = State[prevWorld].gold < COST;
+                } else {
+                     btn.innerText = `Benötigt: ${prevWorld.toUpperCase()} Tiefe 1000`;
+                     btn.disabled = true;
+                }
             }
-        }
+        };
 
-        // Desert Unlock
-        const desertBtn = document.getElementById('btn-desert-action');
-        if (State.desert.unlocked) {
-            desertBtn.innerText = "REISEN"; 
-            desertBtn.className = "btn-travel"; 
-            desertBtn.onclick = () => LogicRef.travelTo('desert'); 
-            desertBtn.disabled = State.activeWorld === 'desert';
-        } else {
-            if (State.forest.maxDepth >= 1000) {
-                 desertBtn.innerText = "FREISCHALTEN (1 Bio. Harz)";
-                 desertBtn.className = "btn-unlock";
-                 desertBtn.onclick = () => LogicRef.tryUnlockDesert(COST);
-                 desertBtn.disabled = State.forest.gold < COST;
-            } else {
-                 desertBtn.innerText = "Benötigt: Wald Tiefe 1000";
-                 desertBtn.disabled = true;
-            }
-        }
+        setupBtn('btn-forest-action', 'forest', 'mine', 'Gold');
+        setupBtn('btn-desert-action', 'desert', 'forest', 'Harz');
+        setupBtn('btn-ice-action', 'ice', 'desert', 'Skara');
 
-        // Ice Unlock
-        const iceBtn = document.getElementById('btn-ice-action');
-        if (State.ice.unlocked) {
-            iceBtn.innerText = "REISEN"; 
-            iceBtn.className = "btn-travel"; 
-            iceBtn.onclick = () => LogicRef.travelTo('ice'); 
-            iceBtn.disabled = State.activeWorld === 'ice';
-        } else {
-            if (State.desert.maxDepth >= 1000) {
-                 iceBtn.innerText = "FREISCHALTEN (1 Bio. Skara)";
-                 iceBtn.className = "btn-unlock";
-                 iceBtn.onclick = () => LogicRef.tryUnlockIce(COST);
-                 desertBtn.disabled = State.desert.gold < COST;
-            } else {
-                 iceBtn.innerText = "Benötigt: Wüste Tiefe 1000";
-                 iceBtn.disabled = true;
-            }
-        }
-
-        // Mine Button
         const mineBtn = document.getElementById('btn-mine-action');
         if (State.activeWorld === 'mine') { 
-            mineBtn.innerText = "AKTIV"; 
-            mineBtn.disabled = true; 
+            mineBtn.innerText = "AKTIV"; mineBtn.disabled = true; 
         } else { 
-            mineBtn.innerText = "REISEN"; 
-            mineBtn.onclick = () => LogicRef.travelTo('mine');
-            mineBtn.disabled = false; 
+            mineBtn.innerText = "REISEN"; mineBtn.onclick = () => LogicRef.travelTo('mine'); mineBtn.disabled = false; 
         }
         
-        // Active Card Styling
         ['mine', 'forest', 'desert', 'ice'].forEach(w => {
             const card = document.getElementById(`card-${w}`);
             if(card) card.className = (State.activeWorld === w) ? 'world-card active' : 'world-card';
@@ -137,6 +103,9 @@ export const UI = {
                 floor.appendChild(div); count++;
             }
         });
+        
+        // Update button state immediately
+        this.update();
     },
     closePrestige: () => document.getElementById('prestige-modal').style.display = 'none',
     
@@ -223,12 +192,18 @@ export const UI = {
     openExchange: function() { document.getElementById('exchange-modal').style.display = 'flex'; this.updateExchangeRate(); },
     closeExchange: () => document.getElementById('exchange-modal').style.display = 'none',
     
-    // UPDATED EVENT CENTER (Leave Button Logic)
     openEventCenter: function() {
         document.getElementById('event-modal').style.display = 'flex';
+        // Force update button logic for transition
         const leaveBtn = document.getElementById('leave-xmas-btn');
-        if (leaveBtn) {
-            leaveBtn.style.display = (State.activeWorld === 'christmas') ? 'block' : 'none';
+        const travelBtn = document.getElementById('btn-xmas-travel');
+        
+        if (State.activeWorld === 'christmas') {
+            if(leaveBtn) leaveBtn.style.display = 'block';
+            if(travelBtn) travelBtn.style.display = 'none';
+        } else {
+            if(leaveBtn) leaveBtn.style.display = 'none';
+            if(travelBtn) travelBtn.style.display = 'block';
         }
     },
     closeEventCenter: () => document.getElementById('event-modal').style.display = 'none',
@@ -287,10 +262,12 @@ export const UI = {
         const buy = document.getElementById('ex-buy-select').value;
         document.getElementById('ex-sell-balance').innerText = LogicRef.formatNumber(State[sell].gold);
         document.getElementById('ex-buy-balance').innerText = LogicRef.formatNumber(State[buy].gold);
-        document.getElementById('ex-rate-display').innerText = "Kurs: Variabel"; 
+        // Correct rate logic
+        document.getElementById('ex-rate-display').innerText = "Kurs: 1000 : 1"; 
     },
     
     switchMainTab: function(tab) {
+        this.currentMainTab = tab;
         if(tab === 'miners') {
             document.getElementById('miner-list').style.display = 'flex';
             document.getElementById('click-list').style.display = 'none';
@@ -412,13 +389,10 @@ export const UI = {
              for(let i=0; i<5; i++) {
                  this.blockCtx.beginPath(); this.blockCtx.moveTo(Math.random()*320, 0); this.blockCtx.lineTo(Math.random()*320, 320); this.blockCtx.stroke();
              }
-        } else if (State.activeWorld === 'christmas' || State.activeEvent === 'xmas') {
+        } else if (State.activeWorld === 'christmas') {
+             // Real Christmas World Block
              this.blockCtx.fillStyle = "rgba(255,255,255,0.3)";
              this.blockCtx.fillRect(140, 0, 40, 320); this.blockCtx.fillRect(0, 140, 320, 40);
-             if(State.activeEvent === 'xmas') {
-                 this.blockCtx.fillStyle = "rgba(192, 57, 43, 0.8)";
-                 this.blockCtx.fillRect(140, 0, 40, 320); this.blockCtx.fillRect(0, 140, 320, 40);
-             }
         } else {
             // Mine (Specks)
             for(let i=0; i<20; i++) { 
@@ -440,6 +414,15 @@ export const UI = {
             this.blockCtx.fillStyle = "#c0392b"; this.blockCtx.beginPath(); this.blockCtx.moveTo(120, 150); this.blockCtx.lineTo(150, 180); this.blockCtx.lineTo(120, 180); this.blockCtx.fill();
             this.blockCtx.beginPath(); this.blockCtx.moveTo(200, 150); this.blockCtx.lineTo(170, 180); this.blockCtx.lineTo(200, 180); this.blockCtx.fill();
         }
+
+        // Overlay for Winter Wonderland Event (Draw on top, don't replace)
+        if (State.activeEvent === 'xmas') {
+            this.blockCtx.fillStyle = "rgba(255,255,255,0.2)"; // Light Snow overlay
+            this.blockCtx.beginPath();
+            this.blockCtx.arc(Math.random()*320, Math.random()*320, 10, 0, Math.PI*2);
+            this.blockCtx.arc(Math.random()*320, Math.random()*320, 15, 0, Math.PI*2);
+            this.blockCtx.fill();
+        }
         
         // Layer Name
         const layerEl = document.getElementById('layerNameDisplay');
@@ -450,12 +433,31 @@ export const UI = {
         }
     },
 
+    applyWorldTheme: function() {
+        const conf = Worlds[State.activeWorld];
+        if(conf && conf.bgTint) {
+            document.body.style.backgroundColor = `rgb(${conf.bgTint[0]}, ${conf.bgTint[1]}, ${conf.bgTint[2]})`;
+        }
+    },
+
     update: function() {
         if (!LogicRef) return;
         const act = State[State.activeWorld];
         const conf = Worlds[State.activeWorld];
         const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.innerText = txt; };
         
+        // 1. Theme Logic
+        this.applyWorldTheme();
+
+        // 2. Buff Glow
+        if(this.wrapper) {
+            this.wrapper.classList.remove('buff-strength', 'buff-miner', 'buff-overdrive');
+            if(Date.now() < act.buffs.str) this.wrapper.classList.add('buff-strength');
+            if(Date.now() < act.buffs.min) this.wrapper.classList.add('buff-miner');
+            if(Date.now() < act.buffs.od) this.wrapper.classList.add('buff-overdrive');
+        }
+
+        // 3. Stats & Display
         setText('depthDisplay', act.depth);
         setText('goldDisplayBig', LogicRef.formatNumber(act.gold));
         setText('dpsDisplay', LogicRef.formatNumber(LogicRef.calculateDPS()));
@@ -465,7 +467,25 @@ export const UI = {
         if(hpBar) hpBar.style.width = hpPercent + "%";
         setText('hp-text-overlay', `${LogicRef.formatNumber(Math.max(0, act.currentHp))} / ${LogicRef.formatNumber(act.maxHp)}`);
 
-        // Miner Buttons & Prices
+        // 4. Update Event Modal Buttons if open
+        const leaveBtn = document.getElementById('leave-xmas-btn');
+        const travelBtn = document.getElementById('btn-xmas-travel');
+        if(State.activeWorld === 'christmas') {
+            if(leaveBtn) leaveBtn.style.display = 'block';
+            if(travelBtn) travelBtn.style.display = 'none';
+        } else {
+            if(leaveBtn) leaveBtn.style.display = 'none';
+            if(travelBtn) travelBtn.style.display = 'block';
+        }
+
+        // 5. Update Prestige Button if modal open
+        const prestigeBtn = document.getElementById('btn-prestige-main');
+        if(prestigeBtn) {
+            let reqDepth = 50 + (act.prestigeCount * 20);
+            prestigeBtn.disabled = act.depth < reqDepth;
+        }
+
+        // 6. Miner Buttons & Prices
         conf.miners.forEach((type, index) => {
             let m = act.miners[index];
             let costMult = 1;
@@ -488,6 +508,24 @@ export const UI = {
             }
         });
         
+        // 7. Update Click Skill Buttons (If tab active)
+        if(this.currentMainTab === 'skills') {
+            conf.clickSkills.forEach((skill, index) => {
+                let lvl = act.clickSkillLevels[index] || 0;
+                let cost = Math.floor(skill.baseCost * Math.pow(1.5, lvl));
+                // We need to target the buttons generated in renderClickSkills
+                // Since they don't have unique IDs, we can just re-render or target the tab
+                // For performance, re-rendering just the text/disabled state would be better,
+                // but re-rendering the list is acceptable here given user interaction speed.
+                // Or we can add IDs in renderClickSkills. Let's rely on renderClickSkills for now 
+                // but checking visibility to avoid overhead.
+                if(document.getElementById('click-list').style.display !== 'none') {
+                    // Just re-render to catch price/color updates
+                    this.renderClickSkills(); 
+                }
+            });
+        }
+
         // Tools & Potions
         let nextPick = conf.picks[act.pickLevel + 1];
         let pickBtn = document.getElementById('btn-pick');
@@ -607,9 +645,10 @@ export const UI = {
         conf.clickSkills.forEach((skill, index) => {
             let lvl = act.clickSkillLevels[index] || 0;
             let cost = Math.floor(skill.baseCost * Math.pow(1.5, lvl));
+            let disabled = act.gold < cost;
             let div = document.createElement('div'); div.className = "miner-card";
             div.style.borderLeftColor = "#f1c40f";
-            div.innerHTML = `<div class="miner-icon-area">${skill.icon}</div><div class="miner-info"><h4>${skill.name} Lvl ${lvl}</h4><p>${skill.desc}</p></div><button class="miner-btn" onclick="GameLogic.buyClickSkill(${index})">Upgr<br>${LogicRef.formatNumber(cost)}</button>`;
+            div.innerHTML = `<div class="miner-icon-area">${skill.icon}</div><div class="miner-info"><h4>${skill.name} Lvl ${lvl}</h4><p>${skill.desc}</p></div><button class="miner-btn" ${disabled ? 'disabled' : ''} onclick="GameLogic.buyClickSkill(${index})">Upgr<br>${LogicRef.formatNumber(cost)}</button>`;
             list.appendChild(div);
         });
     },
@@ -631,10 +670,32 @@ export const UI = {
         let body = get('body'); let legs = get('legs'); let hat = get('hat');
 
         if(Avatar.equipped.wings !== 'none') { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(cx, cy-4*scale, 10*scale, 3*scale, 0, 0, Math.PI*2); ctx.fill(); }
-        ctx.fillStyle = body.color || '#7f8c8d'; roundRect(cx - 4.5*scale, cy - 2*scale, 9*scale, 9*scale, 1*scale);
-        ctx.fillStyle = "#ffccaa"; roundRect(cx - 3.5*scale, cy - 8.5*scale, 7*scale, 7*scale, 1.5*scale);
-        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill();
+        
+        // Legs
         ctx.fillStyle = legs.color || '#2980b9'; roundRect(cx - 3.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale); roundRect(cx + 0.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale);
+        
+        // Body
+        ctx.fillStyle = body.color || '#7f8c8d'; roundRect(cx - 4.5*scale, cy - 2*scale, 9*scale, 9*scale, 1*scale);
+
+        // Arms (New)
+        ctx.fillStyle = "#ffccaa"; // Skin tone hands
+        roundRect(cx - 6.5*scale, cy, 2*scale, 6*scale, 0.5*scale); // Left Arm
+        roundRect(cx + 4.5*scale, cy, 2*scale, 6*scale, 0.5*scale); // Right Arm
+
+        // Head
+        ctx.fillStyle = "#ffccaa"; roundRect(cx - 3.5*scale, cy - 8.5*scale, 7*scale, 7*scale, 1.5*scale);
+        
+        // Eyes
+        ctx.fillStyle = "#fff"; 
+        ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill(); 
+        ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill();
+        
+        // Pupils (New)
+        ctx.fillStyle = "#000"; 
+        ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 0.3*scale, 0, Math.PI*2); ctx.fill(); 
+        ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 0.3*scale, 0, Math.PI*2); ctx.fill();
+
+        // Hat
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
