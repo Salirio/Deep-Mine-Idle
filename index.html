@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Dig Multiverse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+<div id="snow-layer"></div>
+
+<!-- Icons -->
+<!-- CHANGE: Increased resolution from 64x64 to 128x128 -->
+<div id="avatar-btn" class="hud-btn" onclick="openPlayerCard()"><canvas id="avatar-canvas-icon" width="128" height="128"></canvas></div>
+
+<!-- NEW: Fabric Display (Uniform Box in Column) -->
+<div id="fabric-display-container">
+    <span style="font-size: 16px; line-height: 1;">🧶</span> 
+    <span id="fabric-hud-amount" style="margin-top:2px;">0</span>
+</div>
+
+<div id="event-center-btn" class="hud-btn" onclick="openEventCenter()">🎁</div>
+
+<div id="settings-btn" class="hud-btn" onclick="openSettings()">⚙️</div>
+<div id="prestige-btn" class="hud-btn" onclick="openPrestige()">💎</div>
+<div id="world-btn" class="hud-btn" onclick="openWorldTravel()">🌍</div>
+<!-- NEW: Achievements Button -->
+<div id="achieve-btn" class="hud-btn" onclick="openAchievements()">🏆</div>
+<!-- NEW: Pet Button -->
+<div id="pet-btn" class="hud-btn" onclick="openPetShop()">🐾</div>
+<!-- NEW: Exchange Button -->
+<div id="exchange-btn" class="hud-btn" onclick="openExchange()">⚖️</div>
+
+<div id="event-shop-btn" class="hud-btn" onclick="openEventShop()">❄️</div>
+
+<!-- DEV BUTTONS -->
+<!-- CHANGED: Depth 400 -> Depth 399 -->
+<div id="dev-depth-btn" class="dev-only" onclick="devSetDepth399()">⬇️</div>
+<div id="dev-silk-btn" class="dev-only" onclick="devAddSilk()">🧣</div>
+<div id="dev-trophy-btn" class="dev-only" onclick="devAddTrophies()">🏆</div>
+<div id="dev-fabric-btn" class="dev-only" onclick="devAddFabric()">🧶</div>
+<div id="dev-bubble-btn" class="dev-only" onclick="devSpawnBubble()">🫧</div>
+<div id="dev-artifact-btn" class="dev-only" onclick="devForceArtifact()">🏺</div>
+<div id="dev-jump-btn" class="dev-only" onclick="devJump100()">🚀</div>
+<div id="dev-btn" class="dev-only" onclick="devSkip()">DEV SK</div>
+
+<!-- Event Center Modal -->
+<div id="event-modal" class="modal-overlay" onclick="if(event.target===this) closeEventCenter()">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closeEventCenter()">×</div>
+        <div class="settings-header">EVENT CENTER</div>
+        
+        <div class="event-banner">WINTER DROP</div>
+        <div class="event-row">
+            <div style="color:#fff;">
+                <strong>Winter Wunderland</strong><br>
+                <small style="color:#aaa;">Sammle Schneeflocken!</small>
+            </div>
+            <div class="toggle-switch" id="xmas-toggle" onclick="toggleEvent('xmas')"><div class="toggle-knob"></div></div>
+        </div>
+
+        <!-- NEW: CHRISTMAS WORLD EVENT (Wrapped in ID for hiding) -->
+        <div id="xmas-event-container">
+            <div class="event-banner christmas-special" style="margin-top:20px; position: relative;">
+                NORDPOL EXPEDITION
+                <!-- NEW: Date Display -->
+                <span style="position:absolute; bottom:5px; right:10px; font-size:8px; font-family:sans-serif; opacity:0.8;">12.12.25 - 04.01.26</span>
+            </div>
+            <div class="event-row">
+                <div style="color:#fff;">
+                    <strong>Rette Weihnachten!</strong><br>
+                    <small style="color:#aaa;">20 Stufen bis zum Bösen Baum!</small><br>
+                    <small style="color:#f1c40f; font-size:9px;">Belohnung: Artefakt</small>
+                </div>
+                <!-- ADDED ID HERE -->
+                <button id="btn-xmas-travel" class="event-shop-btn" style="background:#c0392b;" onclick="GameLogic.enterChristmasWorld()">REISEN</button>
+            </div>
+        </div>
+        
+        <!-- Leave Button (Only shows if in Christmas World) -->
+        <button id="leave-xmas-btn" class="event-shop-btn" style="background:#7f8c8d; display:none; margin-top:10px; width:100%;" onclick="GameLogic.leaveChristmasWorld()">ZURÜCK NACH HAUSE</button>
+    </div>
+</div>
+
+<!-- NEW: EVENT WIN OVERLAY HTML -->
+<div id="event-win-overlay">
+    <div class="win-title">EVENT<br>ABGESCHLOSSEN!</div>
+    <div class="win-sub">Weihnachten ist gerettet!</div>
+    <div style="font-size:60px;">🎄✨🎁</div>
+</div>
+
+<!-- RESTORED: LOGOUT OVERLAY -->
+<div id="logout-overlay">
+    <div class="logout-scene">
+        <div class="logout-door"></div>
+        <div class="logout-bot">
+            <div class="bot-body" style="background:#3498db; width:30px; height:30px;">
+                <div class="bot-arm" style="top:12px; right:-5px; width:10px; height:4px; background:#fff;"></div>
+            </div>
+        </div>
+    </div>
+    <div style="color:#fff; font-family: 'Press Start 2P', cursive; font-size:14px; text-shadow: 0 0 10px #fff;">BIS BALD!</div>
+</div>
+
+<!-- Event Shop Modal -->
+<div id="event-shop-modal" class="modal-overlay" onclick="if(event.target===this) closeEventShop()">
+    <div class="modal-content" style="width:400px; height:500px; flex-direction:column;">
+        <div class="close-btn" onclick="closeEventShop()">×</div>
+        <div class="settings-header">WEIHNACHTS SHOP</div>
+        <div style="text-align:center; padding:10px; color:#00d2d3;">
+            Schneeflocken: <span id="snowflake-display">0</span> ❄️
+        </div>
+        <div class="shop-grid" id="event-shop-grid"></div>
+    </div>
+</div>
+
+<!-- NEW: Achievements Modal -->
+<div id="achieve-modal" class="modal-overlay" onclick="if(event.target===this) closeAchievements()">
+    <div class="modal-content" style="width: 500px; padding: 20px; flex-direction: column; max-height: 80vh;">
+        <div class="close-btn" onclick="closeAchievements()">×</div>
+        <div class="settings-header" style="color: #f1c40f;">MEILENSTEINE</div>
+        <div style="overflow-y: auto; padding-right: 5px;" id="achieve-list">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Achievement Toast -->
+<div id="achievement-toast">
+    <div class="toast-icon">🏆</div>
+    <div class="toast-text">
+        <strong>ERFOLG FREIGESCHALTET!</strong>
+        <small id="toast-message">Du hast Gold gefunden!</small>
+    </div>
+</div>
+
+<!-- NEW: Pet Shop Modal -->
+<div id="pet-modal" class="modal-overlay" onclick="if(event.target===this) closePetShop()">
+    <div class="modal-content" style="width: 500px; height: 600px; flex-direction: column;">
+        <div class="close-btn" onclick="closePetShop()">×</div>
+        <div class="settings-header" style="color: #9b59b6;">BEGLEITER SHOP</div>
+        <div style="text-align:center; padding:10px; color:#fff;">
+            Trophäen: <span id="trophy-display" style="color:#f1c40f; font-weight:bold;">0</span> 🏆
+            <br><small style="color:#aaa; font-size:10px;">Besitz-Boni stapeln sich!</small>
+        </div>
+        <div class="shop-grid" id="pet-list" style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));">
+            <!-- Pets generated by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Exchange Modal -->
+<div id="exchange-modal" class="modal-overlay" onclick="if(event.target===this) closeExchange()">
+    <div class="modal-content" style="width: 500px; padding: 20px; flex-direction: column;">
+        <div class="close-btn" onclick="closeExchange()">×</div>
+        <div class="settings-header" style="color: #95a5a6;">GALAKTISCHE BÖRSE</div>
+        
+        <div class="exchange-container">
+            <div style="text-align:center; color:#ccc; font-size:12px; margin-bottom:10px;">
+                Tausche deine Ressourcen. <br>Händlergebühr ist im Kurs enthalten.
+            </div>
+
+            <div class="exchange-row">
+                <div class="exchange-col">
+                    <label style="font-size:10px; color:#aaa;">VERKAUFEN</label>
+                    <select id="ex-sell-select" class="exchange-select" onchange="UI.updateExchangeRate()">
+                        <option value="mine">Gold 💰</option>
+                        <option value="forest">Harz 🌲</option>
+                        <option value="desert">Skara 🏺</option>
+                        <option value="ice">Eis ❄️</option>
+                    </select>
+                    <div id="ex-sell-balance" style="font-size:10px; color:#fff;">Guthaben: 0</div>
+                </div>
+                <div class="exchange-arrow">➔</div>
+                <div class="exchange-col">
+                    <label style="font-size:10px; color:#aaa;">KAUFEN</label>
+                    <select id="ex-buy-select" class="exchange-select" onchange="UI.updateExchangeRate()">
+                        <option value="mine">Gold 💰</option>
+                        <option value="forest" selected>Harz 🌲</option>
+                        <option value="desert">Skara 🏺</option>
+                        <option value="ice">Eis ❄️</option>
+                    </select>
+                    <div id="ex-buy-balance" style="font-size:10px; color:#fff;">Guthaben: 0</div>
+                </div>
+            </div>
+
+            <div style="background:#333; padding:10px; border-radius:6px; text-align:center;">
+                <div style="font-size:10px; color:#aaa; margin-bottom:5px;">AKTUELLE RATE</div>
+                <div id="ex-rate-display" class="exchange-rate-display">1.000 Gold = 1 Harz</div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="exchange-btn" style="background:#e67e22;" onclick="GameLogic.trade(0.1)">10% Tauschen</button>
+                <button class="exchange-btn" style="background:#2980b9;" onclick="GameLogic.trade(0.5)">50% Tauschen</button>
+                <button class="exchange-btn" onclick="GameLogic.trade(1.0)">MAX Tauschen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: GIFT TRANSITION -->
+<div id="gift-transition">
+    <div class="giant-gift">🎁</div>
+    <div style="color:white; font-family:'Press Start 2P'; margin-top:20px;">REISE ZUM NORDPOL...</div>
+</div>
+
+<!-- NEW: LOGIN OVERLAY (FIXED HTML) -->
+<div id="login-overlay">
+    <div class="login-box" id="login-form-container">
+        <div class="login-title">DEEP DIG<br>LOGIN</div>
+        <input type="text" id="login-username" class="login-input" placeholder="Benutzername" maxlength="12">
+        <div class="login-btn-row">
+            <button class="login-btn btn-login" onclick="App.handleLogin()">LOGIN</button>
+            <button class="login-btn btn-create" onclick="App.handleCreate()">NEU</button>
+        </div>
+        <div style="margin-top:15px; color:#aaa; font-size:10px;">Lokaler Speicherstand</div>
+    </div>
+
+    <!-- Loading Animation (Hidden initially) -->
+    <div id="loading-anim">
+        <div class="loading-scene">
+            <div class="loading-bot anim-active">
+                <div class="bot-body" style="background:#3498db;">
+                    <div class="bot-arm"></div>
+                </div>
+            </div>
+            <div class="loading-rock"></div>
+            <!-- NEW: Dust Element -->
+            <div class="loading-dust"></div>
+        </div>
+        <div style="color:#fff; font-size:12px; animation: pulseRed 1s infinite;">WIRD GELADEN...</div>
+    </div>
+</div>
+
+<!-- Settings Modal (RESTORED) -->
+<div id="settings-modal" class="modal-overlay" onclick="if(event.target===this) closeSettings()">
+    <div class="modal-content">
+        <div style="position:relative; width:100%;">
+            <div class="close-btn" onclick="closeSettings()">×</div>
+            <div class="settings-header">Einstellungen</div>
+            <div class="setting-row">
+                <span>⚡ Animationen / Partikel</span>
+                <div class="toggle-switch active" id="anim-toggle" onclick="togglePerformance()"><div class="toggle-knob"></div></div>
+            </div>
+            <!-- Volume Slider -->
+            <div class="setting-row">
+                <span>🔊 Lautstärke (<span id="vol-display">30</span>%)</span>
+                <input type="range" id="vol-slider" min="0" max="100" value="30" style="accent-color: #2ecc71; width: 100px; cursor: pointer;" oninput="updateVolume(this.value)">
+            </div>
+            
+            <hr style="border: 1px solid #333; width: 100%; margin: 15px 0;">
+
+            <div style="display:flex; gap:10px; justify-content:center; width:100%; flex-wrap: wrap;">
+                <button onclick="GameLogic.saveGame()" style="background:#27ae60; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; flex:1;">
+                    💾 SAVE
+                </button>
+                <button onclick="App.logout()" style="background:#7f8c8d; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; flex:1;">
+                    🚪 LOGOUT
+                </button>
+                <!-- CHANGED: Added ID to Reset Button for logic handling -->
+                <button id="btn-reset-game" onclick="GameLogic.hardReset()" style="background:#c0392b; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; flex:1;">
+                    🗑️ RESET
+                </button>
+            </div>
+            <div style="text-align:center; font-size:10px; color:#666; margin-top:10px;">
+                Auto-Save alle 30s aktiv.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- World Travel Modal -->
+<div id="world-modal" class="modal-overlay" onclick="if(event.target===this) closeWorldTravel()">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closeWorldTravel()">×</div>
+        <div class="settings-header" style="width:100%">WELTEN REISE</div>
+        
+        <div class="world-card active" id="card-mine">
+            <div style="display:flex; align-items:center;">
+                <div class="world-icon">⛏️</div>
+                <div class="world-info" style="text-align:left;">
+                    <h3>Die Tiefe Mine</h3>
+                    <small>Ressource: Gold</small>
+                </div>
+            </div>
+            <button id="btn-mine-action" class="btn-travel" onclick="travelTo('mine')" disabled>AKTIV</button>
+        </div>
+
+        <div class="world-card" id="card-forest">
+            <div style="display:flex; align-items:center;">
+                <div class="world-icon">🌲</div>
+                <div class="world-info" style="text-align:left;">
+                    <h3>Der Ewige Wald</h3>
+                    <small>Ressource: Harz-Taler</small><br>
+                    <small style="color:#aaa;">Prestige: Bernstein</small>
+                </div>
+            </div>
+            <button id="btn-forest-action" class="btn-unlock" onclick="tryUnlockForest()">
+                FREISCHALTEN<br><small>1 Bio. Gold</small>
+            </button>
+        </div>
+        
+        <!-- DESERT CARD -->
+        <div class="world-card" id="card-desert">
+            <div style="display:flex; align-items:center;">
+                <div class="world-icon">🦂</div>
+                <div class="world-info" style="text-align:left;">
+                    <h3>Sandsturm Wüste</h3>
+                    <small>Ressource: Skarabäen</small><br>
+                    <small style="color:#aaa;">Prestige: Artefakte</small>
+                </div>
+            </div>
+            <button id="btn-desert-action" class="btn-unlock" onclick="tryUnlockDesert()">
+                FREISCHALTEN<br><small>1 Bio. Harz</small>
+            </button>
+        </div>
+
+        <!-- NEW: ICE PLANET CARD -->
+        <div class="world-card" id="card-ice">
+            <div style="display:flex; align-items:center;">
+                <div class="world-icon">🧊</div>
+                <div class="world-info" style="text-align:left;">
+                    <h3>Frost Planet</h3>
+                    <small>Ressource: Eissplitter</small><br>
+                    <small style="color:#aaa;">Prestige: Kryonit</small>
+                </div>
+            </div>
+            <button id="btn-ice-action" class="btn-unlock" onclick="tryUnlockIce()">
+                FREISCHALTEN<br><small>1 Bio. Skarabäen</small>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Prestige Modal -->
+<div id="prestige-modal" class="modal-overlay" onclick="if(event.target===this) closePrestige()">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closePrestige()">×</div>
+        <div class="prestige-header" id="prestige-title">REINKARNATION</div>
+        <div class="dance-floor" id="dance-floor"><div class="big-crystal" id="prestige-icon">💎</div></div>
+        <div class="prestige-body">
+            <div class="reward-info">
+                Du opferst deinen Fortschritt für <b>Aetherium</b>.<br>
+                Behalte Avatar & Statistiken.<br>
+                Erhalte dauerhaften Bonus auf ALLES.
+            </div>
+            <div class="reward-big">+<span id="prestige-reward-amount">0</span> <span id="prestige-currency-icon">💎</span></div>
+            <div style="font-size:12px; color:#aaa; margin-bottom:15px;">Benötigt Tiefe <span id="prestige-req">50</span></div>
+            
+            <!-- NEW: Aetherium Shop Button inside Prestige Modal -->
+            <button class="prestige-btn-main" onclick="openAetheriumShop()" style="background: #2980b9; margin-bottom: 10px; font-size: 14px; padding: 10px;">
+                ⚡ AETHERIUM SHOP ⚡
+            </button>
+
+            <button class="prestige-btn-main" id="btn-prestige-main" onclick="doPrestige()" disabled>
+                RESET & AUFSTIEG
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: Aetherium Shop Modal -->
+<div id="aetherium-modal" class="modal-overlay" onclick="if(event.target===this) closeAetheriumShop()">
+    <div class="modal-content" style="width: 500px; height: 600px; flex-direction: column;">
+        <div class="close-btn" onclick="closeAetheriumShop()">×</div>
+        <div class="settings-header" style="color:#00d2d3; text-shadow: 0 0 10px #00d2d3;">AETHERIUM TECH</div>
+        <div style="text-align:center; padding:10px; color:#fff;">
+            Verfügbares Aetherium: <span id="aetherium-shop-display" style="color:#00d2d3; font-weight:bold;">0</span> 💎
+        </div>
+        <div class="shop-grid" id="aetherium-list">
+            <!-- Upgrades generated by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- NEW: BOT SKILL MODAL -->
+<div id="bot-skill-modal" class="modal-overlay" onclick="if(event.target===this) closeBotSkills()">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closeBotSkills()">×</div>
+        <div class="settings-header" id="bot-skill-title" style="color:#3498db;">BOT MODULE</div>
+        
+        <div class="bot-preview-large" id="bot-skill-preview">
+            <!-- Bot CSS rendered here -->
+        </div>
+        
+        <div class="tech-point-display">
+            Verfügbare Tech-Punkte: <span id="tp-display" style="font-size:16px;">0</span> ⚙️
+        </div>
+
+        <div class="skill-tree-container" id="skill-tree-grid">
+            <!-- Generated by JS -->
+        </div>
+        
+        <div style="text-align:center; font-size:10px; color:#666; margin-top:15px;">
+            Erhalte 1 Tech-Punkt alle 20 Level dieses Bots.
+        </div>
+    </div>
+</div>
+
+<!-- Player Card Modal -->
+<div id="player-modal" class="modal-overlay" onclick="if(event.target===this) closePlayerCard()">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closePlayerCard()">×</div>
+        <div class="modal-left">
+            <input type="text" id="player-name-input" value="Spieler 1" maxlength="12" onchange="updateName()">
+            <div id="player-stats">
+                <div class="stat-row"><span>Max Tiefe:</span> <span id="stat-max-depth" style="color:#00d2d3">1</span></div>
+                <div class="stat-row"><span>Aetherium:</span> <span id="stat-aetherium" style="color:#f1c40f">0</span></div>
+                <div class="stat-row"><span>Boss Kills:</span> <span id="stat-bosses">0</span></div>
+            </div>
+            <!-- CHANGE: Increased resolution from 200x300 to 400x600 for HD look -->
+            <canvas id="avatar-preview-canvas" width="400" height="600"></canvas>
+        </div>
+        <div class="modal-right">
+            <div class="shop-tabs">
+                <!-- NEW: Rearranged Tabs & Added Artifacts/Stats (Cleaned up text) -->
+                <div class="shop-tab active" onclick="switchTab('hat')">Hüte</div>
+                <div class="shop-tab" onclick="switchTab('body')">Body</div>
+                <div class="shop-tab" onclick="switchTab('legs')">Beine</div>
+                <div class="shop-tab" onclick="switchTab('wings')">Flügel</div>
+                <div class="shop-tab" onclick="switchTab('artifacts')" style="color:#f1c40f">Artefakte</div>
+                <div class="shop-tab" onclick="switchTab('stats')" style="color:#3498db">Stats</div>
+            </div>
+            <!-- Grid container is reused for Artifacts, Stats will clear styles if needed -->
+            <div class="shop-grid" id="shop-grid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN GAME -->
+<div id="main-container">
+    <div id="left-col">
+        <div class="logo-container" id="game-logo">
+            <div class="logo-icon">👷</div>
+            <h1 class="arcade-title" id="game-title">DEEP DIG</h1>
+            <div class="logo-icon right">⛏️</div>
+        </div>
+
+        <!-- NEW BIG GOLD DISPLAY -->
+        <div class="big-gold-display">
+            <div class="gold-icon-big">💰</div>
+            <div class="gold-text-big" id="goldDisplayBig">0</div>
+        </div>
+        
+        <div id="game-wrapper">
+            <canvas id="gameCanvas" width="320" height="320"></canvas>
+            <div id="active-miners-layer"></div>
+            <div id="ui-layer">
+                <!-- NEW LAYOUT: HP Bar Full Width at Top -->
+                <div style="width: 100%;">
+                    <!-- Full Width HP Bar Container -->
+                    <div style="position: relative; width: 100%; height: 22px; background: rgba(0,0,0,0.8); border-bottom: 2px solid #555;">
+                        <!-- The Green Bar (Now Horizontal Full Width) -->
+                        <div id="hp-bar-fill" style="width: 100%; height: 100%; background: linear-gradient(to right, #2ecc71, #27ae60); transition: width 0.1s linear;"></div>
+                        
+                        <!-- The Text Overlay (Centered in Bar) -->
+                        <div id="hp-text-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; text-shadow: 1px 1px 0 #000; font-weight: bold; font-family: 'Segoe UI', sans-serif; letter-spacing: 1px;">
+                            10 / 10
+                        </div>
+                    </div>
+
+                    <!-- Info Bar (Depth & Stats below HP) -->
+                    <div class="top-bar" style="padding-top: 8px;">
+                        <div>
+                            <div style="font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000;">TIEFE: <span id="depthDisplay" style="color:#f1c40f; font-size:16px;">1</span></div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size:11px; color:#00d2d3"><span id="prestige-mini-icon">💎</span>: <span id="aetheriumDisplay">0</span> (+<span id="multDisplay">0</span>%)</div>
+                            <div style="font-size:10px; color:#aaa">DPS: <span id="dpsDisplay">0</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="layer-indicator" id="layerNameDisplay">ERDE</div>
+            </div>
+        </div>
+        <div id="tool-shop">
+            <button id="btn-pick" class="tool-btn" onclick="buyPickUpgrade()">Werkzeug Upgraden</button>
+            <button id="btn-tnt" class="tool-btn" onclick="buyTNT()">🧨 TNT<br><small><span id="cost-tnt">50</span></small></button>
+            <button id="btn-pot-str" class="tool-btn" onclick="buyPotionStrength()">🧪 Stärke (2x)<br><small><span id="cost-str">100</span></small></button>
+            <button id="btn-pot-min" class="tool-btn" onclick="buyPotionMiner()">🤖 Robo-Öl (2x)<br><small><span id="cost-min">250</span></small></button>
+            <button id="btn-pot-od" class="tool-btn" onclick="buyPotionOverdrive()">🔥 OVERDRIVE 🔥<br><small><span id="cost-od">1K</span></small></button>
+        </div>
+        <div class="boss-stat">Boss Kills: <span id="bossKillDisplay">0</span> (+<span id="bossBuffDisplay">0</span>% Dmg)</div>
+    </div>
+    <div id="right-col">
+        <!-- NEW: TAB HEADER INSTEAD OF STATIC HEADER -->
+        <div class="right-col-tabs">
+            <div class="right-tab active" id="tab-miners" onclick="switchMainTab('miners')">🤖 MINERS</div>
+            <div class="right-tab" id="tab-skills" onclick="switchMainTab('skills')">💪 SKILLS</div>
+        </div>
+        
+        <div id="miner-list"></div>
+        <!-- NEW: HIDDEN LIST FOR CLICK SKILLS -->
+        <div id="click-list" style="display:none; flex: 1; overflow-y: auto; padding: 10px; flex-direction: column; gap: 8px;"></div>
+    </div>
+</div>
+<script type="module" src="main.js"></script>
+
+</body>
+</html>
