@@ -15,10 +15,11 @@ export const UI = {
         this.blockCtx = bCan.getContext('2d');
         this.blockCanvas = bCan;
         
+        // Background Pattern
         const bgCan = document.createElement('canvas'); bgCan.width = 4; bgCan.height = 4;
         const bgCtx = bgCan.getContext('2d');
         bgCtx.fillStyle = "rgba(255,255,255,0.05)";
-        bgCtx.fillRect(0,0,2,2);
+        bgCtx.fillRect(0,0,2,2); 
         bgCtx.fillRect(2,2,2,2);
         this.bgTextureUrl = bgCan.toDataURL();
         document.body.style.backgroundImage = `url(${this.bgTextureUrl})`;
@@ -36,6 +37,7 @@ export const UI = {
         this.renderAvatarIcon();
     },
 
+    // --- MODAL HELPERS ---
     openSettings: () => document.getElementById('settings-modal').style.display = 'flex',
     closeSettings: () => document.getElementById('settings-modal').style.display = 'none',
     
@@ -46,11 +48,9 @@ export const UI = {
     
     checkWorldUnlock: function() {
         const COST = 1e12; 
-        
         const updateBtn = (id, worldObj, prevWorldObj, unlockCost, currencyName) => {
             const btn = document.getElementById(id);
             if(!btn) return;
-            
             if (worldObj.unlocked) {
                 btn.innerText = "REISEN"; 
                 btn.className = "btn-travel"; 
@@ -116,7 +116,6 @@ export const UI = {
                 floor.appendChild(div); count++;
             }
         });
-        
         this.update();
     },
     closePrestige: () => document.getElementById('prestige-modal').style.display = 'none',
@@ -292,40 +291,38 @@ export const UI = {
         }
     },
     
-    // --- UPDATED: Bot Skills Modal ---
+    // --- UPDATED: Bot Skills Methods (Restored) ---
     openBotSkills: function(index) { 
         document.getElementById('bot-skill-modal').style.display = 'flex'; 
-        document.getElementById('bot-skill-title').innerText = "BOT CONFIG " + index;
-        
-        // Render the tree contents
-        this.renderBotSkillTree(index);
+        document.getElementById('bot-skill-title').innerText = "BOT CONFIG " + index; 
+        this.renderBotSkillTree(index); // CALL THE RENDERER
     },
+    
     closeBotSkills: () => document.getElementById('bot-skill-modal').style.display = 'none',
 
-    // --- NEW: Render Bot Skill Tree Grid ---
     renderBotSkillTree: function(minerIndex) {
         const container = document.getElementById('skill-tree-grid');
         if(!container) return;
         container.innerHTML = "";
-        
+
         const act = State[State.activeWorld];
         const m = act.miners[minerIndex];
         if(!m) return;
-        
+
         // Calculate Points
         const totalPoints = Math.floor(m.level / 20);
         const usedPoints = (m.skills.dps || 0) + (m.skills.cost || 0) + (m.skills.synergy || 0);
         const available = totalPoints - usedPoints;
-        
-        document.getElementById('tp-display').innerText = available;
-        
-        // Setup Grid CSS for this container if not present
+
+        const tpDisplay = document.getElementById('tp-display');
+        if(tpDisplay) tpDisplay.innerText = available;
+
+        // Setup Grid CSS
         container.style.display = 'grid';
         container.style.gridTemplateColumns = '1fr 1fr 1fr';
         container.style.gap = '10px';
         container.style.textAlign = 'center';
-        
-        // Helper to create columns
+
         const createSkillCol = (type, name, desc) => {
             const currentLvl = m.skills[type] || 0;
             const col = document.createElement('div');
@@ -333,11 +330,9 @@ export const UI = {
             col.style.padding = '10px';
             col.style.borderRadius = '8px';
             col.style.border = '1px solid #34495e';
-            
+
             let btnHtml = '';
             if(available > 0) {
-                 // The strange onclick syntax below ensures variables are captured
-                 // We attach event listener manually to avoid quoting issues
                  btnHtml = `<button class="skill-up-btn" style="width:100%; margin-top:5px; background:#27ae60; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer;">+</button>`;
             } else {
                  btnHtml = `<button disabled style="width:100%; margin-top:5px; background:#444; color:#777; border:none; padding:5px; border-radius:4px;">+</button>`;
@@ -349,15 +344,15 @@ export const UI = {
                 <div style="font-size:14px; font-weight:bold; margin-top:5px;">Lvl ${currentLvl}</div>
                 ${btnHtml}
             `;
-            
+
             if(available > 0) {
                 const btn = col.querySelector('.skill-up-btn');
                 btn.onclick = () => { LogicRef.buyBotSkill(minerIndex, type); };
             }
-            
+
             container.appendChild(col);
         };
-        
+
         createSkillCol('dps', 'OVERCLOCK', '+20% Power');
         createSkillCol('cost', 'EFFICIENCY', '-2% Kosten');
         createSkillCol('synergy', 'NETZWERK', '+1% Global DPS');
@@ -507,6 +502,7 @@ export const UI = {
             else { layerEl.innerText = mat.name; layerEl.style.color = "rgba(255,255,255,0.5)"; }
         }
         
+        // Background Color
         if(baseColor) {
              const r = Math.floor(baseColor[0] * 0.2);
              const g = Math.floor(baseColor[1] * 0.2);
@@ -515,11 +511,40 @@ export const UI = {
         }
     },
 
+    showArtifactToast: function(artifact) {
+        const toast = document.getElementById('achievement-toast');
+        if(toast) {
+            const msg = toast.querySelector('.toast-text small');
+            const icon = toast.querySelector('.toast-icon');
+            const title = toast.querySelector('.toast-text strong');
+            
+            if(msg) msg.innerText = `${artifact.name} gefunden!`;
+            if(icon) icon.innerText = artifact.icon || '🏺';
+            if(title) title.innerText = "NEUES ARTEFAKT";
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+    },
+
+    applyWorldTheme: function() {
+        const conf = Worlds[State.activeWorld];
+        if(conf && conf.bgTint) {
+            document.body.style.backgroundColor = `rgb(${conf.bgTint[0]}, ${conf.bgTint[1]}, ${conf.bgTint[2]})`;
+        }
+    },
+
     update: function() {
         if (!LogicRef) return;
         const act = State[State.activeWorld];
         const conf = Worlds[State.activeWorld];
         const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.innerText = txt; };
+        
+        const fabricEl = document.getElementById('fabric-hud-amount');
+        if(fabricEl) fabricEl.innerText = State.fabric;
+        
+        const snowEl = document.getElementById('snowflake-display');
+        if(snowEl) snowEl.innerText = State.snowflakes;
         
         if(document.getElementById('world-modal').style.display === 'flex') {
             this.checkWorldUnlock();
@@ -622,6 +647,22 @@ export const UI = {
         document.body.appendChild(b);
         setTimeout(() => b.style.left = "110vw", 100);
         setTimeout(() => { if(b.parentNode) document.body.removeChild(b); }, 10000);
+    },
+    
+    showArtifactToast: function(artifact) {
+        const toast = document.getElementById('achievement-toast');
+        if(toast) {
+            const msg = toast.querySelector('.toast-text small');
+            const icon = toast.querySelector('.toast-icon');
+            const title = toast.querySelector('.toast-text strong');
+            
+            if(msg) msg.innerText = `${artifact.name} gefunden!`;
+            if(icon) icon.innerText = artifact.icon || '🏺';
+            if(title) title.innerText = "NEUES ARTEFAKT";
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
     },
     
     updateActiveMiners: function() {
@@ -733,6 +774,7 @@ export const UI = {
         if(Avatar.equipped.wings !== 'none') { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(cx, cy-4*scale, 10*scale, 3*scale, 0, 0, Math.PI*2); ctx.fill(); }
         
         ctx.fillStyle = legs.color || '#2980b9'; roundRect(cx - 3.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale); roundRect(cx + 0.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale);
+        
         ctx.fillStyle = body.color || '#7f8c8d'; roundRect(cx - 4.5*scale, cy - 2*scale, 9*scale, 9*scale, 1*scale);
 
         ctx.fillStyle = "#ffccaa"; 
