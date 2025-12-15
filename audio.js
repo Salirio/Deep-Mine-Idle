@@ -1,10 +1,11 @@
 export const AudioController = {
     ctx: null,
     masterGain: null,
-    bgmOscillators: [],
     isMuted: false,
     volume: 0.3,
     currentBgm: null,
+    bgmInterval: null,
+    noteIndex: 0,
 
     init: function() {
         if (this.ctx) {
@@ -51,62 +52,66 @@ export const AudioController = {
              src.connect(f); f.connect(g); src.start(t);
         }
         else if (type === 'christmas') {
-            // Bell like sound
             playOsc('sine', 1500, 1000);
             playOsc('sine', 2000, 1500);
         }
     },
     
-    // Simple BGM Loop using Oscillators
+    // NEW: 8-Bit Arpeggiator BGM
     playBGM: function(world) {
         if(!this.ctx) return;
         
         // Stop previous BGM
-        this.bgmOscillators.forEach(o => o.stop());
-        this.bgmOscillators = [];
+        if(this.bgmInterval) clearInterval(this.bgmInterval);
         this.currentBgm = world;
+        this.noteIndex = 0;
         
         if(this.isMuted || this.volume <= 0) return;
 
-        const t = this.ctx.currentTime;
-        const noteLen = 0.5;
-        
-        // Very basic melody arrays (frequencies)
-        let notes = [];
-        if (world === 'mine') notes = [220, 220, 261, 220, 196, 220]; // A3, A3, C4...
-        else if (world === 'forest') notes = [329, 392, 440, 392, 329, 293];
-        else if (world === 'desert') notes = [293, 311, 349, 311, 293, 261];
-        else if (world === 'ice') notes = [523, 587, 659, 587, 523, 493];
-        else if (world === 'christmas') notes = [523, 587, 523, 493, 523, 659]; // Jingle-ish
-        
-        // Create a looper that regenerates notes
-        // Note: For a robust system we'd use setInterval or lookahead, 
-        // but for this snippet we'll just play a drone or sequence once.
-        // Let's make a simple drone for ambiance to prevent heavy looping logic code bloat
-        
-        const osc = this.ctx.createOscillator();
-        const lfo = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        
-        osc.type = (world === 'ice' || world === 'christmas') ? 'sine' : 'triangle';
-        osc.frequency.value = notes[0] || 220;
-        
-        lfo.type = 'sine';
-        lfo.frequency.value = 0.5; // Slow Pulse
-        
-        const lfoGain = this.ctx.createGain();
-        lfoGain.gain.value = 50;
-        lfo.connect(lfoGain);
-        lfoGain.connect(osc.frequency);
-        
-        gain.gain.value = 0.05; // Quiet background
-        
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        
-        osc.start();
-        lfo.start();
-        
-        this.bgmOscillators.push(osc, lfo);
+        // Melodies (Frequencies in Hz)
+        let melody = [];
+        let speed = 250; // ms per note
+
+        if (world === 'mine') {
+            melody = [220, 0, 261, 0, 329, 0, 261, 0]; // A Minor Arp
+        } else if (world === 'forest') {
+            melody = [329, 392, 440, 392]; // E G A G
+            speed = 400;
+        } else if (world === 'desert') {
+            melody = [293, 311, 0, 349, 311, 293]; // Phrygian vibe
+            speed = 300;
+        } else if (world === 'ice') {
+            melody = [523, 659, 783, 659]; // High C Major
+            speed = 200;
+        } else if (world === 'christmas') {
+            melody = [392, 523, 523, 587, 523, 493, 440, 440]; // Jingle Bells start
+            speed = 250;
+        }
+
+        // Loop Function
+        this.bgmInterval = setInterval(() => {
+            if(this.isMuted || this.volume <= 0) return;
+            
+            const freq = melody[this.noteIndex % melody.length];
+            this.noteIndex++;
+
+            if(freq > 0) {
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'square'; // 8-bit sound
+                osc.frequency.value = freq;
+                
+                // Short pluck envelope
+                gain.gain.setValueAtTime(0.05, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+                
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(t);
+                osc.stop(t + 0.2);
+            }
+        }, speed);
     }
 };
