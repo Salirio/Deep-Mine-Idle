@@ -1,5 +1,5 @@
 import { State, Avatar } from './state.js';
-import { Worlds } from './data.js';
+import { Worlds, STAGE_LENGTH, MIN_ARTIFACT_DEPTH } from './data.js';
 import { AudioController } from './audio.js';
 import { UI } from './ui.js';
 
@@ -33,7 +33,9 @@ export const GameLogic = {
                 let prestigeBonus = (act.minerUpgrades && act.minerUpgrades[i]) ? (1 + act.minerUpgrades[i]) : 1;
                 let milestoneBonus = Math.pow(2, Math.floor(m.level / 10));
                 let skillMult = 1;
-                if (m.skills && m.skills.dps) skillMult += (m.skills.dps * 0.20);
+                if (m.skills) {
+                    if(m.skills.dps) skillMult += (m.skills.dps * 0.20);
+                }
                 dps += (conf.miners[i].basePower * m.level) * prestigeBonus * milestoneBonus * skillMult;
             }
         });
@@ -58,7 +60,6 @@ export const GameLogic = {
             AudioController.playHit(State.activeWorld);
             State.stats.totalClicks++;
             
-            // Generate Cracks on first manual hit
             if (State.impactX === null) {
                 State.impactX = x; State.impactY = y;
                 this.generateCracks(x, y);
@@ -69,7 +70,6 @@ export const GameLogic = {
         if(!isAuto && !dmg) {
              let conf = this.getConfig();
              basePower = conf.picks[act.pickLevel].power;
-             // Skills logic placeholder
              if (act.clickUpgrade) basePower *= (1 + act.clickUpgrade);
              
              if (Date.now() < act.buffs.str) basePower *= 2;
@@ -90,7 +90,6 @@ export const GameLogic = {
         UI.update();
     },
 
-    // NEW: Crack Generation Logic restored
     generateCracks: function(originX, originY) {
         State.cracks = []; 
         for(let i=0; i<8; i++) { 
@@ -280,12 +279,21 @@ export const GameLogic = {
     },
     
     toggleEvent: function(ev) {
+        // UI Toggle Logic
+        const btn = document.getElementById('xmas-toggle');
+        
         if (State.activeEvent === ev) {
             State.activeEvent = null;
             document.body.classList.remove('theme-xmas');
+            if(btn) btn.classList.remove('active');
+            const shopBtn = document.getElementById('event-shop-btn');
+            if(shopBtn) shopBtn.style.display = 'none';
         } else {
             State.activeEvent = ev;
             document.body.classList.add('theme-xmas');
+            if(btn) btn.classList.add('active');
+            const shopBtn = document.getElementById('event-shop-btn');
+            if(shopBtn) shopBtn.style.display = 'flex';
         }
         UI.generateBlockTexture();
         UI.update();
