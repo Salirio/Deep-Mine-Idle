@@ -36,7 +36,7 @@ export const DebugConsole = {
         style.innerHTML = `.dbg-btn { background:#003300; color:#00ff00; border:1px solid #00ff00; cursor:pointer; font-size:10px; padding:5px; } .dbg-btn:hover { background:#005500; }`;
         document.head.appendChild(style);
 
-        document.getElementById('dbg-gold').onclick = () => { this.log("Rich!"); State[State.activeWorld].gold += 1e9; UI.update(); };
+        document.getElementById('dbg-gold').onclick = () => { this.log("Rich!"); State[State.activeWorld].gold += 1e12; UI.update(); };
         document.getElementById('dbg-skip').onclick = () => { this.log("Warping..."); State[State.activeWorld].depth += 100; GameLogic.breakBlock(); };
         document.getElementById('dbg-res').onclick = () => { this.log("HP Reset"); State[State.activeWorld].currentHp = 1; UI.update(); };
         document.getElementById('dbg-boss').onclick = () => { this.log("Boss incoming"); State.isBoss = true; UI.generateBlockTexture(); UI.update(); };
@@ -59,4 +59,5 @@ export const DebugConsole = {
         const el = document.getElementById('debug-console');
         el.style.display = this.isVisible ? 'block' : 'none';
     }
+
 };
