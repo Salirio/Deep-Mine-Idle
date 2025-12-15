@@ -199,6 +199,43 @@ export const UI = {
         });
     },
     closePetShop: () => document.getElementById('pet-modal').style.display = 'none',
+
+    openMobileMenu: function() {
+        document.getElementById('mobile-menu-modal').style.display = 'flex';
+        const grid = document.getElementById('mobile-menu-buttons');
+        grid.innerHTML = "";
+        
+        // Globale Objekte importieren (müssen global sein, da UI sie nicht direkt importiert)
+        const Worlds = window.Worlds; 
+        const State = window.State;
+        if(!Worlds || !State) return;
+
+        // Definiere die Buttons, die vorher in der HUD waren:
+        const menuItems = [
+            { icon: '🌍', label: 'WELTEN', onclick: 'openWorldTravel()' },
+            { icon: Worlds[State.activeWorld].config.prestigeIcon, label: 'PRESTIGE', onclick: 'openPrestige()' },
+            { icon: '🏆', label: 'ERFOLGE', onclick: 'openAchievements()' },
+            { icon: '🐾', label: 'BEGLEITER', onclick: 'openPetShop()' },
+            { icon: '⚖️', label: 'BÖRSE', onclick: 'openExchange()' },
+            { icon: '🎁', label: 'EVENTS', onclick: 'openEventCenter()' }
+        ];
+
+        menuItems.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'menu-btn'; 
+            btn.innerHTML = `<span style="font-size:24px;">${item.icon}</span><br>${item.label}`;
+            btn.onclick = () => { 
+                // Die eval-Funktion ruft die globalen UI-Funktionen auf
+                eval(item.onclick); 
+                UI.closeMobileMenu(); 
+            };
+            grid.appendChild(btn);
+        });
+    },
+
+    closeMobileMenu: function() {
+        document.getElementById('mobile-menu-modal').style.display = 'none';
+    },
     
     openExchange: function() { document.getElementById('exchange-modal').style.display = 'flex'; this.updateExchangeRate(); },
     closeExchange: () => document.getElementById('exchange-modal').style.display = 'none',
@@ -794,3 +831,4 @@ export const UI = {
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
+
