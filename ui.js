@@ -33,19 +33,98 @@ export const UI = {
     openSettings: () => document.getElementById('settings-modal').style.display = 'flex',
     closeSettings: () => document.getElementById('settings-modal').style.display = 'none',
     
-    openWorldTravel: () => document.getElementById('world-modal').style.display = 'flex',
+    // UPDATED WORLD TRAVEL LOGIC
+    openWorldTravel: function() {
+        document.getElementById('world-modal').style.display = 'flex';
+        this.checkWorldUnlock(); // Call check whenever opened
+    },
+    
+    checkWorldUnlock: function() {
+        const COST = 1e12; 
+        // Forest Unlock
+        const forestBtn = document.getElementById('btn-forest-action');
+        if (State.forest.unlocked) {
+            forestBtn.innerText = "REISEN"; 
+            forestBtn.className = "btn-travel"; 
+            forestBtn.onclick = () => LogicRef.travelTo('forest'); 
+            forestBtn.disabled = State.activeWorld === 'forest';
+        } else {
+            if (State.mine.maxDepth >= 1000) {
+                 forestBtn.innerText = "FREISCHALTEN (1 Bio. Gold)";
+                 forestBtn.className = "btn-unlock";
+                 forestBtn.onclick = () => LogicRef.tryUnlockForest(COST);
+                 forestBtn.disabled = State.mine.gold < COST;
+            } else {
+                 forestBtn.innerText = "Benötigt: Mine Tiefe 1000";
+                 forestBtn.disabled = true;
+            }
+        }
+
+        // Desert Unlock
+        const desertBtn = document.getElementById('btn-desert-action');
+        if (State.desert.unlocked) {
+            desertBtn.innerText = "REISEN"; 
+            desertBtn.className = "btn-travel"; 
+            desertBtn.onclick = () => LogicRef.travelTo('desert'); 
+            desertBtn.disabled = State.activeWorld === 'desert';
+        } else {
+            if (State.forest.maxDepth >= 1000) {
+                 desertBtn.innerText = "FREISCHALTEN (1 Bio. Harz)";
+                 desertBtn.className = "btn-unlock";
+                 desertBtn.onclick = () => LogicRef.tryUnlockDesert(COST);
+                 desertBtn.disabled = State.forest.gold < COST;
+            } else {
+                 desertBtn.innerText = "Benötigt: Wald Tiefe 1000";
+                 desertBtn.disabled = true;
+            }
+        }
+
+        // Ice Unlock
+        const iceBtn = document.getElementById('btn-ice-action');
+        if (State.ice.unlocked) {
+            iceBtn.innerText = "REISEN"; 
+            iceBtn.className = "btn-travel"; 
+            iceBtn.onclick = () => LogicRef.travelTo('ice'); 
+            iceBtn.disabled = State.activeWorld === 'ice';
+        } else {
+            if (State.desert.maxDepth >= 1000) {
+                 iceBtn.innerText = "FREISCHALTEN (1 Bio. Skara)";
+                 iceBtn.className = "btn-unlock";
+                 iceBtn.onclick = () => LogicRef.tryUnlockIce(COST);
+                 desertBtn.disabled = State.desert.gold < COST;
+            } else {
+                 iceBtn.innerText = "Benötigt: Wüste Tiefe 1000";
+                 iceBtn.disabled = true;
+            }
+        }
+
+        // Mine Button
+        const mineBtn = document.getElementById('btn-mine-action');
+        if (State.activeWorld === 'mine') { 
+            mineBtn.innerText = "AKTIV"; 
+            mineBtn.disabled = true; 
+        } else { 
+            mineBtn.innerText = "REISEN"; 
+            mineBtn.onclick = () => LogicRef.travelTo('mine');
+            mineBtn.disabled = false; 
+        }
+        
+        // Active Card Styling
+        ['mine', 'forest', 'desert', 'ice'].forEach(w => {
+            const card = document.getElementById(`card-${w}`);
+            if(card) card.className = (State.activeWorld === w) ? 'world-card active' : 'world-card';
+        });
+    },
+    
     closeWorldTravel: () => document.getElementById('world-modal').style.display = 'none',
     
-    // PRESTIGE & DANCE FLOOR
     openPrestige: function() { 
         document.getElementById('prestige-modal').style.display = 'flex';
         let act = State[State.activeWorld];
         document.getElementById('prestige-reward-amount').innerText = Math.floor(act.depth / 20);
         document.getElementById('prestige-req').innerText = 50 + (act.prestigeCount * 20);
         
-        // Render Dancers
         const floor = document.getElementById('dance-floor');
-        // Keep crystal, remove old dancers
         while(floor.children.length > 1) floor.removeChild(floor.lastChild);
         
         let count = 0; let conf = Worlds[State.activeWorld];
@@ -61,7 +140,6 @@ export const UI = {
     },
     closePrestige: () => document.getElementById('prestige-modal').style.display = 'none',
     
-    // AETHERIUM SHOP
     openAetheriumShop: function() {
         document.getElementById('aetherium-modal').style.display = 'flex';
         const grid = document.getElementById('aetherium-list');
@@ -70,19 +148,16 @@ export const UI = {
         let conf = Worlds[State.activeWorld];
         document.getElementById('aetherium-shop-display').innerText = act.prestige;
 
-        // Click Upgrade Item
         let cLvl = act.clickUpgrade || 0;
         let cCost = 1 + (cLvl * 2);
         let clickEl = document.createElement('div'); clickEl.className = "shop-item";
         clickEl.style.border = "2px solid #e74c3c";
         clickEl.innerHTML = `<div style="font-size:10px; color:#e74c3c;">TITANEN GRIFF</div><div style="font-size:20px;">💪 ${cLvl}</div><div class="item-price">${cCost} 💎</div>`;
-        // Direct logic implementation to avoid missing function error
         clickEl.onclick = () => {
             if(act.prestige >= cCost) { act.prestige -= cCost; act.clickUpgrade = (act.clickUpgrade||0)+1; UI.openAetheriumShop(); UI.update(); }
         };
         grid.appendChild(clickEl);
 
-        // Miner Upgrades
         conf.miners.forEach((type, index) => {
             let lvl = act.minerUpgrades[index] || 0;
             let cost = 1 + (lvl * 2);
@@ -96,7 +171,6 @@ export const UI = {
     },
     closeAetheriumShop: () => document.getElementById('aetherium-modal').style.display = 'none',
     
-    // ACHIEVEMENTS
     openAchievements: function() {
         document.getElementById('achieve-modal').style.display = 'flex';
         const list = document.getElementById('achieve-list');
@@ -121,7 +195,6 @@ export const UI = {
     },
     closeAchievements: () => document.getElementById('achieve-modal').style.display = 'none',
     
-    // PET SHOP
     openPetShop: function() {
         document.getElementById('pet-modal').style.display = 'flex';
         const list = document.getElementById('pet-list');
@@ -149,14 +222,20 @@ export const UI = {
     
     openExchange: function() { document.getElementById('exchange-modal').style.display = 'flex'; this.updateExchangeRate(); },
     closeExchange: () => document.getElementById('exchange-modal').style.display = 'none',
-    openEventCenter: () => document.getElementById('event-modal').style.display = 'flex',
+    
+    // UPDATED EVENT CENTER (Leave Button Logic)
+    openEventCenter: function() {
+        document.getElementById('event-modal').style.display = 'flex';
+        const leaveBtn = document.getElementById('leave-xmas-btn');
+        if (leaveBtn) {
+            leaveBtn.style.display = (State.activeWorld === 'christmas') ? 'block' : 'none';
+        }
+    },
     closeEventCenter: () => document.getElementById('event-modal').style.display = 'none',
     
-    // EVENT SHOP
     openEventShop: function() { 
         document.getElementById('event-shop-modal').style.display = 'flex'; 
         const grid = document.getElementById('event-shop-grid'); grid.innerHTML = "";
-        // Show Hats that cost snowflakes
         Worlds.cosmetics.hat.forEach(item => {
             if(item.currency === 'snowflakes') {
                 let el = document.createElement('div'); el.className = "shop-item";
@@ -244,7 +323,7 @@ export const UI = {
         this.ctx.translate(sx, sy); 
         this.ctx.drawImage(this.blockCanvas, 0, 0);
         
-        // --- DRAW CRACKS (WICHTIG!) ---
+        // DRAW CRACKS
         let act = State[State.activeWorld];
         let pct = 1 - (Math.max(0, act.currentHp) / act.maxHp);
         
@@ -295,21 +374,53 @@ export const UI = {
         act.matIndex = totalMatIndex % conf.materials.length;
         let mat = conf.materials[act.matIndex] || conf.materials[0];
 
+        // Boss Logic
+        if (State.activeWorld === 'christmas' && act.depth === 400) {
+            State.isBoss = true; act.maxHp = 500000000; 
+        } else {
+            State.isBoss = (act.depth % Worlds.STAGE_LENGTH === 0);
+        }
+        State.isLucky = (!State.isBoss && Math.random() < 0.05);
+
         // HP Calculation
         let growth = (State.activeWorld === 'christmas') ? 1.045 : 1.055;
         let rawHp = 2 * Math.pow(growth, act.depth);
+        if (State.isBoss && (State.activeWorld !== 'christmas' || act.depth !== 400)) rawHp *= 8;
+        else if (State.isLucky) rawHp *= 0.5;
         act.maxHp = Math.floor(rawHp); act.currentHp = act.maxHp;
 
         // Draw Block
         this.blockCtx.clearRect(0,0,320,320);
-        this.blockCtx.fillStyle = `rgb(${mat.color.join(',')})`;
+        let baseColor = State.isLucky ? [255, 215, 0] : mat.color; 
+        if (State.isBoss && State.activeWorld !== 'christmas') baseColor = [40, 0, 0];
+
+        this.blockCtx.fillStyle = `rgb(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]})`;
         this.blockCtx.fillRect(0, 0, 320, 320);
         
         // Texture Logic
         if(State.activeWorld === 'forest') {
             this.blockCtx.strokeStyle = "rgba(0,0,0,0.1)"; this.blockCtx.lineWidth = 3;
             for(let r=20; r<240; r+=20) { this.blockCtx.beginPath(); this.blockCtx.arc(160, 160, r, 0, Math.PI*2); this.blockCtx.stroke(); }
+        } else if (State.activeWorld === 'desert') {
+             this.blockCtx.strokeStyle = "rgba(0,0,0,0.1)"; this.blockCtx.lineWidth = 4;
+             for(let y=20; y<320; y+=40) {
+                 this.blockCtx.beginPath(); this.blockCtx.moveTo(0, y);
+                 this.blockCtx.bezierCurveTo(100, y-20, 220, y+20, 320, y); this.blockCtx.stroke();
+             }
+        } else if (State.activeWorld === 'ice') {
+             this.blockCtx.strokeStyle = "rgba(255,255,255,0.2)"; this.blockCtx.lineWidth = 2;
+             for(let i=0; i<5; i++) {
+                 this.blockCtx.beginPath(); this.blockCtx.moveTo(Math.random()*320, 0); this.blockCtx.lineTo(Math.random()*320, 320); this.blockCtx.stroke();
+             }
+        } else if (State.activeWorld === 'christmas' || State.activeEvent === 'xmas') {
+             this.blockCtx.fillStyle = "rgba(255,255,255,0.3)";
+             this.blockCtx.fillRect(140, 0, 40, 320); this.blockCtx.fillRect(0, 140, 320, 40);
+             if(State.activeEvent === 'xmas') {
+                 this.blockCtx.fillStyle = "rgba(192, 57, 43, 0.8)";
+                 this.blockCtx.fillRect(140, 0, 40, 320); this.blockCtx.fillRect(0, 140, 320, 40);
+             }
         } else {
+            // Mine (Specks)
             for(let i=0; i<20; i++) { 
                 this.blockCtx.fillStyle = `rgba(0,0,0,0.15)`; 
                 this.blockCtx.beginPath(); this.blockCtx.arc(Math.random()*320, Math.random()*320, Math.random()*60+20, 0, Math.PI*2); this.blockCtx.fill(); 
@@ -322,9 +433,21 @@ export const UI = {
             this.blockCtx.strokeRect(0,0,320,320);
         }
         
+        // Evil Tree Override
+        if (State.activeWorld === 'christmas' && act.depth === 400) {
+            this.blockCtx.clearRect(0,0,320,320); 
+            this.blockCtx.fillStyle = "#27ae60"; this.blockCtx.beginPath(); this.blockCtx.moveTo(160, 20); this.blockCtx.lineTo(280, 280); this.blockCtx.lineTo(40, 280); this.blockCtx.fill();
+            this.blockCtx.fillStyle = "#c0392b"; this.blockCtx.beginPath(); this.blockCtx.moveTo(120, 150); this.blockCtx.lineTo(150, 180); this.blockCtx.lineTo(120, 180); this.blockCtx.fill();
+            this.blockCtx.beginPath(); this.blockCtx.moveTo(200, 150); this.blockCtx.lineTo(170, 180); this.blockCtx.lineTo(200, 180); this.blockCtx.fill();
+        }
+        
         // Layer Name
         const layerEl = document.getElementById('layerNameDisplay');
-        if(layerEl) { layerEl.innerText = mat.name; layerEl.style.color = "rgba(255,255,255,0.5)"; }
+        if(layerEl) {
+            if(State.isBoss) { layerEl.innerText = "BOSS"; layerEl.style.color = "#e74c3c"; }
+            else if(State.isLucky) { layerEl.innerText = "GLÜCK"; layerEl.style.color = "#f1c40f"; }
+            else { layerEl.innerText = mat.name; layerEl.style.color = "rgba(255,255,255,0.5)"; }
+        }
     },
 
     update: function() {
