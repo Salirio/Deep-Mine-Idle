@@ -43,12 +43,10 @@ export const GameLogic = {
         let multiplier = 1;
         if (Date.now() < act.buffs.min) multiplier *= 2;
         if (Date.now() < act.buffs.od) multiplier *= 3;
-        
         if (State.artifactsFound.includes('root_heart')) multiplier += 0.05;
         if (State.artifactsFound.includes('christmas_star')) multiplier += 0.50;
         
         let prestigeMult = 1 + (act.prestige * 0.25);
-        
         return dps * multiplier * prestigeMult;
     },
 
@@ -59,15 +57,21 @@ export const GameLogic = {
             AudioController.init();
             AudioController.playHit(State.activeWorld);
             State.stats.totalClicks++;
-            // Combo Logic Placeholder
+            
+            // Generate Cracks on first manual hit
+            if (State.impactX === null) {
+                State.impactX = x; State.impactY = y;
+                this.generateCracks(x, y);
+            }
         }
 
         let basePower = dmg || 1; 
-        // Apply buffs to manual clicks
         if(!isAuto && !dmg) {
-             // Logic simplified for rescue, normally uses Pick Power
              let conf = this.getConfig();
              basePower = conf.picks[act.pickLevel].power;
+             // Skills logic placeholder
+             if (act.clickUpgrade) basePower *= (1 + act.clickUpgrade);
+             
              if (Date.now() < act.buffs.str) basePower *= 2;
              if (Date.now() < act.buffs.od) basePower *= 3;
         }
@@ -86,13 +90,29 @@ export const GameLogic = {
         UI.update();
     },
 
+    // NEW: Crack Generation Logic restored
+    generateCracks: function(originX, originY) {
+        State.cracks = []; 
+        for(let i=0; i<8; i++) { 
+            let path = []; let cx = originX; let cy = originY; 
+            path.push({x: cx, y: cy}); 
+            let radius = 0; 
+            while(radius < 450) { 
+                radius += Math.random()*30+10; 
+                let wiggle = (Math.random()-0.5)*1.0; 
+                let angle = (Math.PI * 2 * i) / 8 + wiggle; 
+                path.push({x: cx + Math.cos(angle)*radius, y: cy + Math.sin(angle)*radius}); 
+            } 
+            State.cracks.push(path); 
+        }
+    },
+
     breakBlock: function() {
         let act = this.getActive();
         let conf = this.getConfig();
         let mat = conf.materials[act.matIndex];
         
         let reward = mat.val;
-        // Loop Multiplier simplified
         let loopMult = Math.pow(10, act.loopCount);
         act.gold += (reward * loopMult);
         act.depth++;
@@ -103,7 +123,6 @@ export const GameLogic = {
         this.saveGame();
     },
     
-    // --- PURCHASES ---
     buyMiner: function(index) {
         let act = this.getActive();
         let conf = this.getConfig();
@@ -141,7 +160,6 @@ export const GameLogic = {
         }
     },
 
-    // --- CONSUMABLES ---
     buyTNT: function() {
         let act = this.getActive();
         if(act.gold >= act.costs.tnt) {
@@ -161,7 +179,6 @@ export const GameLogic = {
     buyPotionMiner: function() { let act=this.getActive(); if(act.gold >= act.costs.min) { act.gold -= act.costs.min; act.costs.min*=1.8; this.activateBuff('min'); } },
     buyPotionOverdrive: function() { let act=this.getActive(); if(act.gold >= act.costs.od) { act.gold -= act.costs.od; act.costs.od*=2; this.activateBuff('od'); } },
 
-    // --- SKILLS & MISC ---
     buyClickSkill: function(index) {
         let act = this.getActive(); let conf = this.getConfig();
         let skill = conf.clickSkills[index];
@@ -177,7 +194,6 @@ export const GameLogic = {
 
     openBotSkills: function(index) { UI.openBotSkills(index); },
     
-    // --- TRAVEL & PRESTIGE ---
     travelTo: function(world) {
         if(world === State.activeWorld) return;
         State.activeWorld = world; 
@@ -201,7 +217,6 @@ export const GameLogic = {
         act.prestige += reward; 
         act.prestigeCount++;
         
-        // Reset
         act.gold = 0; act.depth = 1; act.currentHp = 1; act.pickLevel = 0;
         act.miners.forEach(m => m.level = 0);
         
@@ -218,11 +233,14 @@ export const GameLogic = {
         }
     },
 
-    // --- SAVE SYSTEM (FIXED KEY) ---
     saveGame: function() {
-        if(!State.username) return; // Don't save if no user
+        if(!State.username) return; 
         const saveObj = { state: State, avatar: Avatar };
-        localStorage.setItem('DeepDigSave_' + State.username, JSON.stringify(saveObj));
+        try {
+            const jsonString = JSON.stringify(saveObj);
+            const encoded = btoa(unescape(encodeURIComponent(jsonString)));
+            localStorage.setItem('DeepDigSave_' + State.username, encoded);
+        } catch(e) { console.error("Save Fail", e); }
     },
 
     loadGame: function() {
@@ -230,20 +248,19 @@ export const GameLogic = {
         const raw = localStorage.getItem('DeepDigSave_' + State.username);
         if(raw) {
             try {
-                const data = JSON.parse(raw);
-                if(data.state) {
-                    // Deep Merge needed in real app, simplistic here
-                    Object.assign(State, data.state);
-                    // Manually restore inner objects if they got wiped, but let's assume structure is ok
+                let jsonString = raw;
+                if (!raw.trim().startsWith('{')) {
+                    try { jsonString = decodeURIComponent(escape(atob(raw))); } catch (e) { jsonString = raw; }
                 }
+                const data = JSON.parse(jsonString);
+                if(data.state) Object.assign(State, data.state);
                 if(data.avatar) Object.assign(Avatar, data.avatar);
                 return true;
-            } catch(e) { console.error("Save Load Error", e); return false; }
+            } catch(e) { return false; }
         }
         return false;
     },
 
-    // --- EVENTS & BUBBLES ---
     clickBubble: function() {
         let rand = Math.random();
         let act = this.getActive();
@@ -274,17 +291,10 @@ export const GameLogic = {
         UI.update();
     },
 
-    enterChristmasWorld: function() {
-        State.prevWorld = State.activeWorld;
-        this.travelTo('christmas');
-    },
-    leaveChristmasWorld: function() {
-        this.travelTo(State.prevWorld || 'mine');
-    },
+    enterChristmasWorld: function() { State.prevWorld = State.activeWorld; this.travelTo('christmas'); },
+    leaveChristmasWorld: function() { this.travelTo(State.prevWorld || 'mine'); },
     
-    // Trade Logic
     trade: function(percent) {
-        // Simplistic trade implementation
         const sellType = document.getElementById('ex-sell-select').value;
         const buyType = document.getElementById('ex-buy-select').value;
         if(sellType === buyType) return;
@@ -295,7 +305,6 @@ export const GameLogic = {
         
         if(amount > 0) {
             sellSource.gold -= amount;
-            // Conversion rate simplified: 1000:1 for higher tier
             let rate = 0.001; 
             buySource.gold += Math.floor(amount * rate);
             UI.update();
