@@ -685,72 +685,108 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
 .boss-stat { font-size: 11px; color: #e74c3c; font-weight: bold; margin-top: 5px; text-align: center; }
 
 /* --- MOBILE / TABLET RESPONSIVENESS --- */
-/* --- FINAL APP MODE CSS (Einfügen ganz unten in style.css) --- */
-/* --- ULTIMATIVER APP MODUS (style.css) --- */
+/* --- style (1).css: FINALER KORRIGIERTER BLOCK --- */
+
 @media (max-width: 900px) {
     /* 1. SEITE EINFRIEREN (MUSS ALLES ÜBERSCHREIBEN) */
     html, body {
         position: fixed !important;
         width: 100vw !important;
         height: 100vh !important;
-        overflow: hidden !important; /* Kein Scrollen der Hauptseite */
+        overflow: hidden !important;
         margin: 0 !important;
         padding: 0 !important;
         touch-action: none !important;
     }
-
-    /* 2. HUD-Buttons ausblenden, um Platz zu schaffen */
+    
+    /* HUD & LOGO AUFRÄUMEN */
     .hud-btn { display: none !important; }
-    /* Ausnahme: Avatar */
     #avatar-btn { display: flex !important; transform: scale(0.7); top: 5px; left: 5px; }
     #fabric-display-container { display: flex !important; top: 60px; left: 10px; transform: scale(0.8); }
+    .logo-container { transform: scale(0.8); margin-bottom: 0; }
+    .big-gold-display { transform: scale(0.9); margin: 5px 0; width: 90%; }
+    .right-col-tabs { display: none !important; } /* Desktop Tabs ausblenden */
 
-    /* 3. Haupt-Container (Die Bühne für alle Tabs) */
+    /* 2. HAUPT-CONTAINER (Die Bühne für alle Tabs) */
     #main-container {
         display: flex;
         flex-direction: column;
         width: 100vw;
-        height: calc(100vh - 65px) !important; /* Passt sich an die feste Höhe an */
-        position: absolute; top: 0; left: 0; /* Feste Position */
+        height: calc(100vh - 65px) !important; /* Platz für die Leiste unten */
+        position: absolute; top: 0; left: 0; 
         padding: 0 !important;
         margin: 0 !important;
-        overflow: hidden; /* Der Container selbst scrollt nicht */
+        overflow: hidden; 
     }
 
-    /* 4. Spalten-Logik (Die Tabs) */
-    #left-col, #right-col {
-        width: 100%;
-        height: 100%;
-        padding: 10px;
-        box-sizing: border-box;
-        overflow-y: auto; /* NUR DER INHALT DER SPALTE DARF SCROLLEN */
-        
-        /* WICHTIG: Display Logik */
-        display: none; /* Standardmäßig alles aus */
+    /* 3. SPIEL-SPALTE (DIG Tab) */
+    #left-col { 
+        display: flex; flex-direction: column; align-items: center; 
+        width: 100%; height: 100%; overflow-y: auto;
+        padding: 10px; box-sizing: border-box;
+    }
+    #right-col {
+        display: none; /* CREW/SKILLS Tab ist standardmäßig versteckt */
+        width: 100%; height: 100%; overflow-y: auto;
+        padding: 10px; box-sizing: border-box;
     }
 
-    /* Standard-Startansicht (Fallback) */
-    #left-col { display: flex; flex-direction: column; align-items: center; }
-
-    /* 5. Navigation Leiste (Muss über allem feststehen) */
-    #mobile-bottom-nav {
-        display: flex !important;
-        position: fixed !important;
-        bottom: 0; left: 0;
-        width: 100%; height: 65px;
-        z-index: 999999;
-        /* Dein Style-Rest... */
-    }
-
-    /* 6. Größe der Elemente anpassen */
+    /* 4. SPIEL-ELEMENTE & UPGRADES */
     #game-wrapper {
         width: 280px !important; 
         height: 280px !important;
+        flex-shrink: 0;
+        margin: 5px auto;
     }
-    .right-col-tabs { display: none !important; }
+    #tool-shop {
+        width: 100%;
+        margin-top: 10px;
+        padding-bottom: 20px;
+    }
+
+    /* 5. NAVIGATION LEISTE (FIXIERT) */
+    #mobile-bottom-nav {
+        display: flex !important;
+        position: fixed !important; 
+        bottom: 0 !important;       
+        left: 0 !important;
+        width: 100% !important; 
+        height: 65px;
+        background: #151515;
+        border-top: 2px solid #333;
+        z-index: 2000000 !important; /* Sehr hoch, damit es über allem ist */
+        justify-content: space-around;
+        padding-bottom: 5px;
+    }
+
+    /* 6. NAVIGATION ITEMS (Text & Icon Styling) */
+    .mobile-nav-item {
+        flex: 1;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        color: #999 !important; 
+        cursor: pointer;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Saubere Schrift */
+    }
+    .mobile-nav-item.active {
+        color: #f1c40f !important;
+        background: rgba(255,255,255,0.03);
+    }
+    
+    .nav-icon {
+        font-size: 24px;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .nav-label {
+        font-size: 10px;
+        font-weight: bold;
+    }
 }
 
-/* Auf PC bleibt die Leiste weg */
+/* Auf PC bleibt die Leiste weg (MUSS ausserhalb des @media Blocks stehen!) */
 #mobile-bottom-nav { display: none; }
+
 
 
