@@ -56,7 +56,7 @@ export const GameLogic = {
         let act = this.getActive();
         
         if(!isAuto) {
-            AudioController.init(); // Ensure context is ready
+            AudioController.init();
             AudioController.playHit(State.activeWorld);
             State.stats.totalClicks++;
             
@@ -118,7 +118,6 @@ export const GameLogic = {
         
         if(act.depth > act.maxDepth) act.maxDepth = act.depth;
         
-        // Event Check (Snowflakes)
         if(State.activeEvent === 'xmas' || State.activeWorld === 'christmas') {
             if(Math.random() > 0.7) State.snowflakes++;
         }
@@ -145,6 +144,27 @@ export const GameLogic = {
             m.level++;
             UI.update();
             UI.updateActiveMiners();
+        }
+    },
+
+    // --- NEW: Handle Bot Skill Upgrades ---
+    buyBotSkill: function(minerIndex, skillType) {
+        let act = this.getActive();
+        let m = act.miners[minerIndex];
+        if(!m) return;
+        
+        // Calculate points
+        let totalPoints = Math.floor(m.level / 20);
+        let usedPoints = (m.skills.dps || 0) + (m.skills.cost || 0) + (m.skills.synergy || 0);
+        let available = totalPoints - usedPoints;
+
+        if(available > 0) {
+            if(!m.skills[skillType]) m.skills[skillType] = 0;
+            m.skills[skillType]++;
+            
+            // Re-render UI
+            UI.renderBotSkillTree(minerIndex);
+            UI.update();
         }
     },
 
@@ -200,10 +220,7 @@ export const GameLogic = {
     
     travelTo: function(world) {
         if(world === State.activeWorld) return;
-        
-        // Audio Change
         AudioController.playBGM(world);
-
         State.activeWorld = world; 
         UI.generateBlockTexture();
         UI.renderMinerList();
@@ -263,10 +280,7 @@ export const GameLogic = {
                 const data = JSON.parse(jsonString);
                 if(data.state) Object.assign(State, data.state);
                 if(data.avatar) Object.assign(Avatar, data.avatar);
-                
-                // Resume BGM if loaded
                 setTimeout(() => AudioController.playBGM(State.activeWorld), 1000);
-
                 return true;
             } catch(e) { return false; }
         }
@@ -292,9 +306,7 @@ export const GameLogic = {
     },
     
     toggleEvent: function(ev) {
-        // UI Toggle Logic
         const btn = document.getElementById('xmas-toggle');
-        
         if (State.activeEvent === ev) {
             State.activeEvent = null;
             document.body.classList.remove('theme-xmas');
@@ -314,20 +326,13 @@ export const GameLogic = {
 
     enterChristmasWorld: function() { 
         State.prevWorld = State.activeWorld; 
-        
-        // Show Transition
         const trans = document.getElementById('gift-transition');
         if(trans) {
             trans.style.display = 'flex';
-            UI.closeEventCenter(); // Close modal so it's not in the way
-            
-            // Wait for animation
+            UI.closeEventCenter();
             setTimeout(() => {
                 this.travelTo('christmas'); 
-                // Hide after travel
-                setTimeout(() => {
-                    trans.style.display = 'none';
-                }, 500);
+                setTimeout(() => { trans.style.display = 'none'; }, 500);
             }, 2000);
         } else {
             this.travelTo('christmas');
@@ -347,7 +352,7 @@ export const GameLogic = {
         
         if(amount > 0) {
             sellSource.gold -= amount;
-            let rate = 0.001; // 10000000 to 1
+            let rate = 0.001; 
             buySource.gold += Math.floor(amount * rate);
             UI.update();
             UI.updateExchangeRate();
