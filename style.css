@@ -686,114 +686,71 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
 
 /* --- MOBILE / TABLET RESPONSIVENESS --- */
 /* --- FINAL APP MODE CSS (Einfügen ganz unten in style.css) --- */
+/* --- ULTIMATIVER APP MODUS (style.css) --- */
 @media (max-width: 900px) {
-    /* 1. SEITE EINFRIEREN */
+    /* 1. SEITE EINFRIEREN (MUSS ALLES ÜBERSCHREIBEN) */
     html, body {
-        position: fixed;
-        width: 100%;
-        height: 100%;
+        position: fixed !important;
+        width: 100vw !important;
+        height: 100vh !important;
         overflow: hidden !important; /* Kein Scrollen der Hauptseite */
-        background: #111;
-        margin: 0; padding: 0;
+        margin: 0 !important;
+        padding: 0 !important;
+        touch-action: none !important;
     }
 
-    /* 2. Aufräumen: Bunte Buttons weg für sauberen Look */
+    /* 2. HUD-Buttons ausblenden, um Platz zu schaffen */
     .hud-btn { display: none !important; }
-    
-    /* Avatar und Ressource oben links behalten wir klein */
+    /* Ausnahme: Avatar */
     #avatar-btn { display: flex !important; transform: scale(0.7); top: 5px; left: 5px; }
-    #fabric-display-container { top: 60px; left: 10px; transform: scale(0.8); }
+    #fabric-display-container { display: flex !important; top: 60px; left: 10px; transform: scale(0.8); }
 
-    /* 3. Layout Container: Flexbox für Stapelung */
+    /* 3. Haupt-Container (Die Bühne für alle Tabs) */
     #main-container {
         display: flex;
         flex-direction: column;
         width: 100vw;
-        height: calc(100% - 65px) !important; /* Platz für Leiste unten lassen */
+        height: calc(100vh - 65px) !important; /* Passt sich an die feste Höhe an */
+        position: absolute; top: 0; left: 0; /* Feste Position */
         padding: 0 !important;
         margin: 0 !important;
+        overflow: hidden; /* Der Container selbst scrollt nicht */
     }
 
-    /* 4. Linke Spalte (Das Spiel) */
-    #left-col {
-        display: flex; /* Standard AN */
-        flex-direction: column;
-        align-items: center;
+    /* 4. Spalten-Logik (Die Tabs) */
+    #left-col, #right-col {
         width: 100%;
         height: 100%;
-        overflow-y: auto; /* Inhalt darf scrollen */
         padding: 10px;
-        padding-bottom: 20px;
         box-sizing: border-box;
+        overflow-y: auto; /* NUR DER INHALT DER SPALTE DARF SCROLLEN */
+        
+        /* WICHTIG: Display Logik */
+        display: none; /* Standardmäßig alles aus */
     }
 
-    /* 5. Rechte Spalte (Miners/Skills) */
-    #right-col {
-        display: none; /* Standard AUS (wird per JS aktiviert) */
-        width: 100%;
-        height: 100%;
-        overflow-y: auto;
-        background: #1e1e1e;
-        padding: 10px;
-        padding-bottom: 20px;
-        box-sizing: border-box;
-        border: none;
-        margin: 0;
-    }
+    /* Standard-Startansicht (Fallback) */
+    #left-col { display: flex; flex-direction: column; align-items: center; }
 
-    /* 6. Spiel-Elemente anpassen */
-    .logo-container { transform: scale(0.8); margin-bottom: 0; }
-    .big-gold-display { transform: scale(0.9); margin: 5px 0; width: 90%; }
-    
-    #game-wrapper {
-        width: 260px !important; /* Passt auf alle Handys */
-        height: 260px !important;
-        flex-shrink: 0;
-        margin: 5px auto;
-    }
-
-    #tool-shop {
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    /* Alte Tabs verstecken */
-    .right-col-tabs { display: none !important; }
-
-    /* 7. Die neue Navigation Leiste */
+    /* 5. Navigation Leiste (Muss über allem feststehen) */
     #mobile-bottom-nav {
-        display: flex; /* WICHTIG: Sichtbar machen */
-        position: fixed;
+        display: flex !important;
+        position: fixed !important;
         bottom: 0; left: 0;
         width: 100%; height: 65px;
-        background: #151515;
-        border-top: 2px solid #333;
         z-index: 999999;
-        justify-content: space-around;
-        padding-bottom: env(safe-area-inset-bottom);
+        /* Dein Style-Rest... */
     }
 
-    .mobile-nav-item {
-        flex: 1;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        color: #666;
-        cursor: pointer;
+    /* 6. Größe der Elemente anpassen */
+    #game-wrapper {
+        width: 280px !important; 
+        height: 280px !important;
     }
-    
-    .mobile-nav-item.active {
-        color: #f1c40f;
-        background: rgba(255,255,255,0.03);
-        border-top: 3px solid #f1c40f;
-    }
-    
-    .nav-icon { font-size: 24px; margin-bottom: 2px; }
-    .nav-label { font-size: 10px; font-weight: bold; }
-    
-    /* Modals Fullscreen */
-    .modal-content { width: 100% !important; height: 100% !important; border: none; border-radius: 0; }
+    .right-col-tabs { display: none !important; }
 }
 
 /* Auf PC bleibt die Leiste weg */
 #mobile-bottom-nav { display: none; }
+
 
