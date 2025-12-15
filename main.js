@@ -222,15 +222,25 @@ window.appSwitchTab = function(tab) {
     
     // 3. Modals schließen (wichtig beim Wechsel von 'menu')
     if(window.closeSettings) window.closeSettings();
-    if(window.closeWorldTravel) window.closeWorldTravel(); 
+    // HIER ÄNDERN: Statt closeWorldTravel() schliessen wir NUR das neue Menü
+    if(window.closeMobileMenu) window.closeMobileMenu(); 
 
     // 4. Logic
     if (tab === 'menu') {
-        if(window.openSettings) window.openSettings();
+        // KORREKTUR: Öffne das Gitter-Menü, NICHT die Settings
+        if(window.openMobileMenu) window.openMobileMenu(); 
+        
         // Behält die vorherige Ansicht im Hintergrund bei
         if(left.style.display !== 'none') { left.style.display = 'flex'; } else { right.style.display = 'flex'; }
         return; 
     }
+    
+    // Wir schließen alle anderen Modals, die wir nicht mehr brauchen.
+    if(window.closeWorldTravel) window.closeWorldTravel();
+    if(window.closePrestige) window.closePrestige();
+    if(window.closeExchange) window.closeExchange();
+    if(window.closeEventCenter) window.closeEventCenter();
+
 
     if (tab === 'mine') {
         // DIG TAB
@@ -280,4 +290,5 @@ App.logout = function() {
     if (mobileNav) mobileNav.classList.add('nav-hidden'); // Nav ausblenden
     originalLogout.apply(App);
 };
+
 
