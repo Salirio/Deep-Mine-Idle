@@ -7,15 +7,23 @@ let LogicRef = null;
 export const UI = {
     particles: [], floaters: [], shake: 0, currentShopTab: 'hat', currentMainTab: 'miners',
     blockCtx: null, bgPatternCtx: null, ctx: null,
+    bgTextureUrl: null, // Store texture
 
     init: function(GameLogic) {
         LogicRef = GameLogic; 
         const bCan = document.createElement('canvas'); bCan.width = 320; bCan.height = 320;
         this.blockCtx = bCan.getContext('2d');
         this.blockCanvas = bCan;
-        const bgCan = document.createElement('canvas'); bgCan.width = 128; bgCan.height = 128;
-        this.bgPatternCtx = bgCan.getContext('2d');
-        this.bgPatternCanvas = bgCan;
+        
+        // --- NEW: Generate Background Texture (Pixel Grid) ---
+        const bgCan = document.createElement('canvas'); bgCan.width = 4; bgCan.height = 4;
+        const bgCtx = bgCan.getContext('2d');
+        bgCtx.fillStyle = "rgba(255,255,255,0.05)";
+        bgCtx.fillRect(0,0,2,2); // Checkered pattern
+        bgCtx.fillRect(2,2,2,2);
+        this.bgTextureUrl = bgCan.toDataURL();
+        document.body.style.backgroundImage = `url(${this.bgTextureUrl})`;
+        
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.wrapper = document.getElementById('game-wrapper');
@@ -38,44 +46,61 @@ export const UI = {
         this.checkWorldUnlock(); 
     },
     
+    // UPDATED: Check logic for world buttons
     checkWorldUnlock: function() {
         const COST = 1e12; 
-        const setupBtn = (id, world, prevWorld, currencyName) => {
+        
+        // Helper to update a specific world button
+        const updateBtn = (id, worldObj, prevWorldObj, unlockCost, currencyName) => {
             const btn = document.getElementById(id);
             if(!btn) return;
-            if (State[world].unlocked) {
+            
+            if (worldObj.unlocked) {
+                // Already unlocked -> Travel Mode
                 btn.innerText = "REISEN"; 
                 btn.className = "btn-travel"; 
-                btn.onclick = () => LogicRef.travelTo(world); 
-                btn.disabled = State.activeWorld === world;
+                btn.onclick = () => LogicRef.travelTo(worldObj === State.forest ? 'forest' : (worldObj === State.desert ? 'desert' : 'ice')); 
+                btn.disabled = State.activeWorld === (worldObj === State.forest ? 'forest' : (worldObj === State.desert ? 'desert' : 'ice'));
             } else {
-                if (State[prevWorld].maxDepth >= 1000) {
-                     btn.innerText = `FREISCHALTEN (1 Bio. ${currencyName})`;
+                // Locked -> Check Requirements
+                if (prevWorldObj.maxDepth >= 1000) {
+                     btn.innerText = `FREISCHALTEN\n(1 Bio. ${currencyName})`;
                      btn.className = "btn-unlock";
-                     btn.onclick = () => {
-                         if(world === 'forest') LogicRef.tryUnlockForest(COST);
-                         if(world === 'desert') LogicRef.tryUnlockDesert(COST);
-                         if(world === 'ice') LogicRef.tryUnlockIce(COST);
-                     };
-                     btn.disabled = State[prevWorld].gold < COST;
+                     // Check if affordable
+                     if (prevWorldObj.gold >= unlockCost) {
+                         btn.disabled = false;
+                         btn.onclick = () => {
+                            if(worldObj === State.forest) LogicRef.tryUnlockForest(unlockCost);
+                            if(worldObj === State.desert) LogicRef.tryUnlockDesert(unlockCost);
+                            if(worldObj === State.ice) LogicRef.tryUnlockIce(unlockCost);
+                         };
+                     } else {
+                         btn.disabled = true; // Not enough gold
+                     }
                 } else {
-                     btn.innerText = `Benötigt: ${prevWorld.toUpperCase()} Tiefe 1000`;
+                     btn.innerText = "Benötigt: Tiefe 1000";
+                     btn.className = "btn-unlock";
                      btn.disabled = true;
                 }
             }
         };
 
-        setupBtn('btn-forest-action', 'forest', 'mine', 'Gold');
-        setupBtn('btn-desert-action', 'desert', 'forest', 'Harz');
-        setupBtn('btn-ice-action', 'ice', 'desert', 'Skara');
+        updateBtn('btn-forest-action', State.forest, State.mine, COST, 'Gold');
+        updateBtn('btn-desert-action', State.desert, State.forest, COST, 'Harz');
+        updateBtn('btn-ice-action', State.ice, State.desert, COST, 'Skara');
 
+        // Mine Button
         const mineBtn = document.getElementById('btn-mine-action');
         if (State.activeWorld === 'mine') { 
-            mineBtn.innerText = "AKTIV"; mineBtn.disabled = true; 
+            mineBtn.innerText = "AKTIV"; 
+            mineBtn.disabled = true; 
         } else { 
-            mineBtn.innerText = "REISEN"; mineBtn.onclick = () => LogicRef.travelTo('mine'); mineBtn.disabled = false; 
+            mineBtn.innerText = "REISEN"; 
+            mineBtn.onclick = () => LogicRef.travelTo('mine');
+            mineBtn.disabled = false; 
         }
         
+        // Active Card Styling
         ['mine', 'forest', 'desert', 'ice'].forEach(w => {
             const card = document.getElementById(`card-${w}`);
             if(card) card.className = (State.activeWorld === w) ? 'world-card active' : 'world-card';
@@ -104,7 +129,6 @@ export const UI = {
             }
         });
         
-        // Update button state immediately
         this.update();
     },
     closePrestige: () => document.getElementById('prestige-modal').style.display = 'none',
@@ -262,7 +286,6 @@ export const UI = {
         const buy = document.getElementById('ex-buy-select').value;
         document.getElementById('ex-sell-balance').innerText = LogicRef.formatNumber(State[sell].gold);
         document.getElementById('ex-buy-balance').innerText = LogicRef.formatNumber(State[buy].gold);
-        // Correct rate logic
         document.getElementById('ex-rate-display').innerText = "Kurs: 1000 : 1"; 
     },
     
@@ -288,7 +311,8 @@ export const UI = {
     renderLoop: function() {
         if(!this.ctx) return;
         this.ctx.fillStyle = "#111"; 
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // Draw transparent fill to clear but keep context
         
         let sx=0, sy=0;
         if(State.settings.animations && this.shake>0) { 
@@ -390,11 +414,9 @@ export const UI = {
                  this.blockCtx.beginPath(); this.blockCtx.moveTo(Math.random()*320, 0); this.blockCtx.lineTo(Math.random()*320, 320); this.blockCtx.stroke();
              }
         } else if (State.activeWorld === 'christmas') {
-             // Real Christmas World Block
              this.blockCtx.fillStyle = "rgba(255,255,255,0.3)";
              this.blockCtx.fillRect(140, 0, 40, 320); this.blockCtx.fillRect(0, 140, 320, 40);
         } else {
-            // Mine (Specks)
             for(let i=0; i<20; i++) { 
                 this.blockCtx.fillStyle = `rgba(0,0,0,0.15)`; 
                 this.blockCtx.beginPath(); this.blockCtx.arc(Math.random()*320, Math.random()*320, Math.random()*60+20, 0, Math.PI*2); this.blockCtx.fill(); 
@@ -415,28 +437,29 @@ export const UI = {
             this.blockCtx.beginPath(); this.blockCtx.moveTo(200, 150); this.blockCtx.lineTo(170, 180); this.blockCtx.lineTo(200, 180); this.blockCtx.fill();
         }
 
-        // Overlay for Winter Wonderland Event (Draw on top, don't replace)
         if (State.activeEvent === 'xmas') {
-            this.blockCtx.fillStyle = "rgba(255,255,255,0.2)"; // Light Snow overlay
+            this.blockCtx.fillStyle = "rgba(255,255,255,0.2)"; 
             this.blockCtx.beginPath();
             this.blockCtx.arc(Math.random()*320, Math.random()*320, 10, 0, Math.PI*2);
             this.blockCtx.arc(Math.random()*320, Math.random()*320, 15, 0, Math.PI*2);
             this.blockCtx.fill();
         }
         
-        // Layer Name
         const layerEl = document.getElementById('layerNameDisplay');
         if(layerEl) {
             if(State.isBoss) { layerEl.innerText = "BOSS"; layerEl.style.color = "#e74c3c"; }
             else if(State.isLucky) { layerEl.innerText = "GLÜCK"; layerEl.style.color = "#f1c40f"; }
             else { layerEl.innerText = mat.name; layerEl.style.color = "rgba(255,255,255,0.5)"; }
         }
-    },
-
-    applyWorldTheme: function() {
-        const conf = Worlds[State.activeWorld];
-        if(conf && conf.bgTint) {
-            document.body.style.backgroundColor = `rgb(${conf.bgTint[0]}, ${conf.bgTint[1]}, ${conf.bgTint[2]})`;
+        
+        // --- UPDATED: Background Color Logic ---
+        // Change body background to a darkened version of the current block color
+        if(baseColor) {
+             // Darken by 80% (multiply by 0.2)
+             const r = Math.floor(baseColor[0] * 0.2);
+             const g = Math.floor(baseColor[1] * 0.2);
+             const b = Math.floor(baseColor[2] * 0.2);
+             document.body.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
         }
     },
 
@@ -446,8 +469,11 @@ export const UI = {
         const conf = Worlds[State.activeWorld];
         const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.innerText = txt; };
         
-        // 1. Theme Logic
-        this.applyWorldTheme();
+        // 1. Check World Unlocks CONTINUOUSLY if modal is open
+        // This fixes the "Grey button" issue by checking requirements every frame
+        if(document.getElementById('world-modal').style.display === 'flex') {
+            this.checkWorldUnlock();
+        }
 
         // 2. Buff Glow
         if(this.wrapper) {
@@ -513,14 +539,7 @@ export const UI = {
             conf.clickSkills.forEach((skill, index) => {
                 let lvl = act.clickSkillLevels[index] || 0;
                 let cost = Math.floor(skill.baseCost * Math.pow(1.5, lvl));
-                // We need to target the buttons generated in renderClickSkills
-                // Since they don't have unique IDs, we can just re-render or target the tab
-                // For performance, re-rendering just the text/disabled state would be better,
-                // but re-rendering the list is acceptable here given user interaction speed.
-                // Or we can add IDs in renderClickSkills. Let's rely on renderClickSkills for now 
-                // but checking visibility to avoid overhead.
                 if(document.getElementById('click-list').style.display !== 'none') {
-                    // Just re-render to catch price/color updates
                     this.renderClickSkills(); 
                 }
             });
@@ -671,31 +690,24 @@ export const UI = {
 
         if(Avatar.equipped.wings !== 'none') { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(cx, cy-4*scale, 10*scale, 3*scale, 0, 0, Math.PI*2); ctx.fill(); }
         
-        // Legs
         ctx.fillStyle = legs.color || '#2980b9'; roundRect(cx - 3.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale); roundRect(cx + 0.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale);
         
-        // Body
         ctx.fillStyle = body.color || '#7f8c8d'; roundRect(cx - 4.5*scale, cy - 2*scale, 9*scale, 9*scale, 1*scale);
 
-        // Arms (New)
-        ctx.fillStyle = "#ffccaa"; // Skin tone hands
-        roundRect(cx - 6.5*scale, cy, 2*scale, 6*scale, 0.5*scale); // Left Arm
-        roundRect(cx + 4.5*scale, cy, 2*scale, 6*scale, 0.5*scale); // Right Arm
+        ctx.fillStyle = "#ffccaa"; 
+        roundRect(cx - 6.5*scale, cy, 2*scale, 6*scale, 0.5*scale); 
+        roundRect(cx + 4.5*scale, cy, 2*scale, 6*scale, 0.5*scale); 
 
-        // Head
         ctx.fillStyle = "#ffccaa"; roundRect(cx - 3.5*scale, cy - 8.5*scale, 7*scale, 7*scale, 1.5*scale);
         
-        // Eyes
         ctx.fillStyle = "#fff"; 
         ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill(); 
         ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill();
         
-        // Pupils (New)
         ctx.fillStyle = "#000"; 
         ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 0.3*scale, 0, Math.PI*2); ctx.fill(); 
         ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 0.3*scale, 0, Math.PI*2); ctx.fill();
 
-        // Hat
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
