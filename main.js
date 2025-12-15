@@ -119,6 +119,9 @@ window.buyPotionStrength = () => GameLogic.buyPotionStrength(); // Missing befor
 window.buyPotionMiner = () => GameLogic.buyPotionMiner(); // Missing before?
 window.buyPotionOverdrive = () => GameLogic.buyPotionOverdrive(); // Missing before?
 
+window.openMobileMenu = () => UI.openMobileMenu();
+window.closeMobileMenu = () => UI.closeMobileMenu();
+
 window.openPlayerCard = () => UI.openPlayerCard();
 window.closePlayerCard = () => UI.closePlayerCard();
 window.updateName = () => UI.updateName();
@@ -277,3 +280,4 @@ App.logout = function() {
     if (mobileNav) mobileNav.classList.add('nav-hidden'); // Nav ausblenden
     originalLogout.apply(App);
 };
+
