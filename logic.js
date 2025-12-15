@@ -56,7 +56,7 @@ export const GameLogic = {
         let act = this.getActive();
         
         if(!isAuto) {
-            AudioController.init();
+            AudioController.init(); // Ensure context is ready
             AudioController.playHit(State.activeWorld);
             State.stats.totalClicks++;
             
@@ -118,6 +118,11 @@ export const GameLogic = {
         
         if(act.depth > act.maxDepth) act.maxDepth = act.depth;
         
+        // Event Check (Snowflakes)
+        if(State.activeEvent === 'xmas' || State.activeWorld === 'christmas') {
+            if(Math.random() > 0.7) State.snowflakes++;
+        }
+
         UI.generateBlockTexture();
         this.saveGame();
     },
@@ -195,6 +200,10 @@ export const GameLogic = {
     
     travelTo: function(world) {
         if(world === State.activeWorld) return;
+        
+        // Audio Change
+        AudioController.playBGM(world);
+
         State.activeWorld = world; 
         UI.generateBlockTexture();
         UI.renderMinerList();
@@ -254,6 +263,10 @@ export const GameLogic = {
                 const data = JSON.parse(jsonString);
                 if(data.state) Object.assign(State, data.state);
                 if(data.avatar) Object.assign(Avatar, data.avatar);
+                
+                // Resume BGM if loaded
+                setTimeout(() => AudioController.playBGM(State.activeWorld), 1000);
+
                 return true;
             } catch(e) { return false; }
         }
@@ -299,7 +312,28 @@ export const GameLogic = {
         UI.update();
     },
 
-    enterChristmasWorld: function() { State.prevWorld = State.activeWorld; this.travelTo('christmas'); },
+    enterChristmasWorld: function() { 
+        State.prevWorld = State.activeWorld; 
+        
+        // Show Transition
+        const trans = document.getElementById('gift-transition');
+        if(trans) {
+            trans.style.display = 'flex';
+            UI.closeEventCenter(); // Close modal so it's not in the way
+            
+            // Wait for animation
+            setTimeout(() => {
+                this.travelTo('christmas'); 
+                // Hide after travel
+                setTimeout(() => {
+                    trans.style.display = 'none';
+                }, 500);
+            }, 2000);
+        } else {
+            this.travelTo('christmas');
+        }
+    },
+
     leaveChristmasWorld: function() { this.travelTo(State.prevWorld || 'mine'); },
     
     trade: function(percent) {
@@ -313,7 +347,7 @@ export const GameLogic = {
         
         if(amount > 0) {
             sellSource.gold -= amount;
-            let rate = 0.001; 
+            let rate = 0.001; // 10000000 to 1
             buySource.gold += Math.floor(amount * rate);
             UI.update();
             UI.updateExchangeRate();
