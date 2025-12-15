@@ -7,7 +7,7 @@ let LogicRef = null;
 export const UI = {
     particles: [], floaters: [], shake: 0, currentShopTab: 'hat', currentMainTab: 'miners',
     blockCtx: null, bgPatternCtx: null, ctx: null,
-    bgTextureUrl: null, // Store texture
+    bgTextureUrl: null,
 
     init: function(GameLogic) {
         LogicRef = GameLogic; 
@@ -15,11 +15,10 @@ export const UI = {
         this.blockCtx = bCan.getContext('2d');
         this.blockCanvas = bCan;
         
-        // --- NEW: Generate Background Texture (Pixel Grid) ---
         const bgCan = document.createElement('canvas'); bgCan.width = 4; bgCan.height = 4;
         const bgCtx = bgCan.getContext('2d');
         bgCtx.fillStyle = "rgba(255,255,255,0.05)";
-        bgCtx.fillRect(0,0,2,2); // Checkered pattern
+        bgCtx.fillRect(0,0,2,2);
         bgCtx.fillRect(2,2,2,2);
         this.bgTextureUrl = bgCan.toDataURL();
         document.body.style.backgroundImage = `url(${this.bgTextureUrl})`;
@@ -37,7 +36,6 @@ export const UI = {
         this.renderAvatarIcon();
     },
 
-    // --- MODAL HELPERS ---
     openSettings: () => document.getElementById('settings-modal').style.display = 'flex',
     closeSettings: () => document.getElementById('settings-modal').style.display = 'none',
     
@@ -46,27 +44,22 @@ export const UI = {
         this.checkWorldUnlock(); 
     },
     
-    // UPDATED: Check logic for world buttons
     checkWorldUnlock: function() {
         const COST = 1e12; 
         
-        // Helper to update a specific world button
         const updateBtn = (id, worldObj, prevWorldObj, unlockCost, currencyName) => {
             const btn = document.getElementById(id);
             if(!btn) return;
             
             if (worldObj.unlocked) {
-                // Already unlocked -> Travel Mode
                 btn.innerText = "REISEN"; 
                 btn.className = "btn-travel"; 
                 btn.onclick = () => LogicRef.travelTo(worldObj === State.forest ? 'forest' : (worldObj === State.desert ? 'desert' : 'ice')); 
                 btn.disabled = State.activeWorld === (worldObj === State.forest ? 'forest' : (worldObj === State.desert ? 'desert' : 'ice'));
             } else {
-                // Locked -> Check Requirements
                 if (prevWorldObj.maxDepth >= 1000) {
                      btn.innerText = `FREISCHALTEN\n(1 Bio. ${currencyName})`;
                      btn.className = "btn-unlock";
-                     // Check if affordable
                      if (prevWorldObj.gold >= unlockCost) {
                          btn.disabled = false;
                          btn.onclick = () => {
@@ -75,7 +68,7 @@ export const UI = {
                             if(worldObj === State.ice) LogicRef.tryUnlockIce(unlockCost);
                          };
                      } else {
-                         btn.disabled = true; // Not enough gold
+                         btn.disabled = true; 
                      }
                 } else {
                      btn.innerText = "Benötigt: Tiefe 1000";
@@ -89,18 +82,13 @@ export const UI = {
         updateBtn('btn-desert-action', State.desert, State.forest, COST, 'Harz');
         updateBtn('btn-ice-action', State.ice, State.desert, COST, 'Skara');
 
-        // Mine Button
         const mineBtn = document.getElementById('btn-mine-action');
         if (State.activeWorld === 'mine') { 
-            mineBtn.innerText = "AKTIV"; 
-            mineBtn.disabled = true; 
+            mineBtn.innerText = "AKTIV"; mineBtn.disabled = true; 
         } else { 
-            mineBtn.innerText = "REISEN"; 
-            mineBtn.onclick = () => LogicRef.travelTo('mine');
-            mineBtn.disabled = false; 
+            mineBtn.innerText = "REISEN"; mineBtn.onclick = () => LogicRef.travelTo('mine'); mineBtn.disabled = false; 
         }
         
-        // Active Card Styling
         ['mine', 'forest', 'desert', 'ice'].forEach(w => {
             const card = document.getElementById(`card-${w}`);
             if(card) card.className = (State.activeWorld === w) ? 'world-card active' : 'world-card';
@@ -218,7 +206,6 @@ export const UI = {
     
     openEventCenter: function() {
         document.getElementById('event-modal').style.display = 'flex';
-        // Force update button logic for transition
         const leaveBtn = document.getElementById('leave-xmas-btn');
         const travelBtn = document.getElementById('btn-xmas-travel');
         
@@ -304,15 +291,83 @@ export const UI = {
             this.renderClickSkills();
         }
     },
-    openBotSkills: function(index) { document.getElementById('bot-skill-modal').style.display = 'flex'; document.getElementById('bot-skill-title').innerText = "BOT CONFIG " + index; },
+    
+    // --- UPDATED: Bot Skills Modal ---
+    openBotSkills: function(index) { 
+        document.getElementById('bot-skill-modal').style.display = 'flex'; 
+        document.getElementById('bot-skill-title').innerText = "BOT CONFIG " + index;
+        
+        // Render the tree contents
+        this.renderBotSkillTree(index);
+    },
     closeBotSkills: () => document.getElementById('bot-skill-modal').style.display = 'none',
+
+    // --- NEW: Render Bot Skill Tree Grid ---
+    renderBotSkillTree: function(minerIndex) {
+        const container = document.getElementById('skill-tree-grid');
+        if(!container) return;
+        container.innerHTML = "";
+        
+        const act = State[State.activeWorld];
+        const m = act.miners[minerIndex];
+        if(!m) return;
+        
+        // Calculate Points
+        const totalPoints = Math.floor(m.level / 20);
+        const usedPoints = (m.skills.dps || 0) + (m.skills.cost || 0) + (m.skills.synergy || 0);
+        const available = totalPoints - usedPoints;
+        
+        document.getElementById('tp-display').innerText = available;
+        
+        // Setup Grid CSS for this container if not present
+        container.style.display = 'grid';
+        container.style.gridTemplateColumns = '1fr 1fr 1fr';
+        container.style.gap = '10px';
+        container.style.textAlign = 'center';
+        
+        // Helper to create columns
+        const createSkillCol = (type, name, desc) => {
+            const currentLvl = m.skills[type] || 0;
+            const col = document.createElement('div');
+            col.style.background = '#2c3e50';
+            col.style.padding = '10px';
+            col.style.borderRadius = '8px';
+            col.style.border = '1px solid #34495e';
+            
+            let btnHtml = '';
+            if(available > 0) {
+                 // The strange onclick syntax below ensures variables are captured
+                 // We attach event listener manually to avoid quoting issues
+                 btnHtml = `<button class="skill-up-btn" style="width:100%; margin-top:5px; background:#27ae60; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer;">+</button>`;
+            } else {
+                 btnHtml = `<button disabled style="width:100%; margin-top:5px; background:#444; color:#777; border:none; padding:5px; border-radius:4px;">+</button>`;
+            }
+
+            col.innerHTML = `
+                <div style="font-size:12px; font-weight:bold; color:#f1c40f; margin-bottom:5px;">${name}</div>
+                <div style="font-size:10px; color:#bdc3c7; height:30px;">${desc}</div>
+                <div style="font-size:14px; font-weight:bold; margin-top:5px;">Lvl ${currentLvl}</div>
+                ${btnHtml}
+            `;
+            
+            if(available > 0) {
+                const btn = col.querySelector('.skill-up-btn');
+                btn.onclick = () => { LogicRef.buyBotSkill(minerIndex, type); };
+            }
+            
+            container.appendChild(col);
+        };
+        
+        createSkillCol('dps', 'OVERCLOCK', '+20% Power');
+        createSkillCol('cost', 'EFFICIENCY', '-2% Kosten');
+        createSkillCol('synergy', 'NETZWERK', '+1% Global DPS');
+    },
 
     // --- MAIN RENDER LOOP ---
     renderLoop: function() {
         if(!this.ctx) return;
         this.ctx.fillStyle = "#111"; 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // Draw transparent fill to clear but keep context
         
         let sx=0, sy=0;
         if(State.settings.animations && this.shake>0) { 
@@ -452,10 +507,7 @@ export const UI = {
             else { layerEl.innerText = mat.name; layerEl.style.color = "rgba(255,255,255,0.5)"; }
         }
         
-        // --- UPDATED: Background Color Logic ---
-        // Change body background to a darkened version of the current block color
         if(baseColor) {
-             // Darken by 80% (multiply by 0.2)
              const r = Math.floor(baseColor[0] * 0.2);
              const g = Math.floor(baseColor[1] * 0.2);
              const b = Math.floor(baseColor[2] * 0.2);
@@ -469,13 +521,10 @@ export const UI = {
         const conf = Worlds[State.activeWorld];
         const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.innerText = txt; };
         
-        // 1. Check World Unlocks CONTINUOUSLY if modal is open
-        // This fixes the "Grey button" issue by checking requirements every frame
         if(document.getElementById('world-modal').style.display === 'flex') {
             this.checkWorldUnlock();
         }
 
-        // 2. Buff Glow
         if(this.wrapper) {
             this.wrapper.classList.remove('buff-strength', 'buff-miner', 'buff-overdrive');
             if(Date.now() < act.buffs.str) this.wrapper.classList.add('buff-strength');
@@ -483,7 +532,6 @@ export const UI = {
             if(Date.now() < act.buffs.od) this.wrapper.classList.add('buff-overdrive');
         }
 
-        // 3. Stats & Display
         setText('depthDisplay', act.depth);
         setText('goldDisplayBig', LogicRef.formatNumber(act.gold));
         setText('dpsDisplay', LogicRef.formatNumber(LogicRef.calculateDPS()));
@@ -493,7 +541,6 @@ export const UI = {
         if(hpBar) hpBar.style.width = hpPercent + "%";
         setText('hp-text-overlay', `${LogicRef.formatNumber(Math.max(0, act.currentHp))} / ${LogicRef.formatNumber(act.maxHp)}`);
 
-        // 4. Update Event Modal Buttons if open
         const leaveBtn = document.getElementById('leave-xmas-btn');
         const travelBtn = document.getElementById('btn-xmas-travel');
         if(State.activeWorld === 'christmas') {
@@ -504,14 +551,12 @@ export const UI = {
             if(travelBtn) travelBtn.style.display = 'block';
         }
 
-        // 5. Update Prestige Button if modal open
         const prestigeBtn = document.getElementById('btn-prestige-main');
         if(prestigeBtn) {
             let reqDepth = 50 + (act.prestigeCount * 20);
             prestigeBtn.disabled = act.depth < reqDepth;
         }
 
-        // 6. Miner Buttons & Prices
         conf.miners.forEach((type, index) => {
             let m = act.miners[index];
             let costMult = 1;
@@ -534,7 +579,6 @@ export const UI = {
             }
         });
         
-        // 7. Update Click Skill Buttons (If tab active)
         if(this.currentMainTab === 'skills') {
             conf.clickSkills.forEach((skill, index) => {
                 let lvl = act.clickSkillLevels[index] || 0;
@@ -545,7 +589,6 @@ export const UI = {
             });
         }
 
-        // Tools & Potions
         let nextPick = conf.picks[act.pickLevel + 1];
         let pickBtn = document.getElementById('btn-pick');
         if (pickBtn) {
@@ -581,7 +624,6 @@ export const UI = {
         setTimeout(() => { if(b.parentNode) document.body.removeChild(b); }, 10000);
     },
     
-    // --- ANIMATIONS & RENDER HELPERS ---
     updateActiveMiners: function() {
         const layer = document.getElementById('active-miners-layer'); 
         if(!layer || !State.settings.animations) { if(layer) layer.innerHTML = ""; return; }
@@ -691,7 +733,6 @@ export const UI = {
         if(Avatar.equipped.wings !== 'none') { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(cx, cy-4*scale, 10*scale, 3*scale, 0, 0, Math.PI*2); ctx.fill(); }
         
         ctx.fillStyle = legs.color || '#2980b9'; roundRect(cx - 3.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale); roundRect(cx + 0.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale);
-        
         ctx.fillStyle = body.color || '#7f8c8d'; roundRect(cx - 4.5*scale, cy - 2*scale, 9*scale, 9*scale, 1*scale);
 
         ctx.fillStyle = "#ffccaa"; 
