@@ -836,5 +836,9 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     display: none !important;
 }
 
+/* Hides the mobile menu during login/loading */
+.nav-hidden {
+    display: none !important;
+}
 
 
