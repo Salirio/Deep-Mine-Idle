@@ -215,6 +215,9 @@ function logicLoop() {
 // Hole die Navigationsleiste für Animationen
 const mobileNav = document.getElementById('mobile-bottom-nav');
 
+// FIX: Hide navigation bar immediately on load (so it's not visible on login screen)
+if (mobileNav) mobileNav.classList.add('nav-hidden');
+
 // --- 1. UMSCHALT-LOGIK (window.appSwitchTab) ---
 window.appSwitchTab = function(tab) {
     // 1. Visuelles Feedback (Aktiven Button markieren)
@@ -301,6 +304,7 @@ App.logout = function() {
     if (mobileNav) mobileNav.classList.add('nav-hidden'); // Nav ausblenden
     originalLogout.apply(App);
 };
+
 
 
 
