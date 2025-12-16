@@ -836,100 +836,135 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     display: none !important;
 }
 
-/* --- FINAL MOBILE FIXES (Paste at the very bottom of style.css) --- */
+/* --- FINAL OPTIMIZED MOBILE UI (Paste at bottom of style.css) --- */
 @media (max-width: 900px) {
 
-    /* 1. GENERAL MODAL SCALING (Fixes 'Too Big' Menus) */
-    .modal-content {
-        width: 95% !important;       /* Fit to screen width */
-        max-width: 95% !important;   /* Never overflow width */
-        max-height: 85vh !important; /* Never overflow height */
-        padding: 10px !important;    /* Save space */
-        overflow-y: auto !important; /* Allow scrolling if content is too tall */
-        flex-direction: column !important; /* Stack everything vertically */
+    /* 1. UNIVERSAL MODAL FIXES */
+    .modal-overlay {
+        z-index: 2000010 !important; /* Higher than Bottom Nav (2000000) */
+        align-items: flex-start !important; /* Start from top */
+        padding-top: 40px !important; /* Space from top */
+        padding-bottom: 80px !important; /* Space for bottom nav */
     }
 
-    /* 2. PLAYER CARD FIX (The Split View Issue) */
-    #player-modal .modal-content {
-        height: auto !important; /* Let it grow naturally */
+    .modal-content {
+        width: 90% !important;
+        max-width: 90% !important;
+        max-height: 80vh !important; /* Prevents overflow */
+        overflow-y: auto !important; /* Enables scrolling inside modal */
+        margin-bottom: 20px;
     }
-    
+
+    /* 2. PLAYER CARD: CLEAN VERTICAL STACK */
+    #player-modal .modal-content {
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
     .modal-left {
-        width: 100% !important;       /* Full width */
+        width: 100% !important;
         height: auto !important;
         border-right: none !important;
         border-bottom: 2px solid #333;
-        flex-direction: row !important; /* Put Avatar & Stats side-by-side */
-        justify-content: space-around;
-        align-items: center;
-        padding-bottom: 10px !important;
+        flex-direction: row !important; /* Name left, Avatar right */
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px !important;
+        background: #1a1a1a;
     }
 
-    /* Shrink the Avatar on Mobile */
-    #avatar-preview-canvas {
-        width: 80px !important;
-        height: 120px !important; 
+    /* Left side of header: Name & Stats */
+    #player-name-input {
+        width: 120px !important;
+        font-size: 12px !important;
+        text-align: left !important;
         margin: 0 !important;
     }
+    #player-stats {
+        text-align: left !important;
+        font-size: 9px !important;
+        margin: 0 !important;
+    }
+    .stat-row { margin-bottom: 2px !important; }
 
-    /* Adjust the Name Input */
-    #player-name-input {
-        font-size: 14px !important;
-        margin-bottom: 5px !important;
-        width: 100% !important;
+    /* Right side of header: Tiny Avatar Preview */
+    #avatar-preview-canvas {
+        width: 60px !important;
+        height: 90px !important;
+        margin: 0 !important;
+        border: 1px solid #444;
     }
 
-    /* Fix the Shop Tabs */
+    /* Shop Area */
+    .modal-right { width: 100% !important; }
+    
     .shop-tabs {
-        width: 100%;
-        overflow-x: auto; /* Scroll sideways if tabs are too wide */
         padding-right: 0 !important;
     }
     .shop-tab {
-        padding: 10px 5px !important;
-        font-size: 11px !important;
-        flex: none; /* Don't squish tabs */
+        padding: 8px 4px !important;
+        font-size: 10px !important;
     }
-    
-    /* 3. WORLD TRAVEL FIX (The Big Cards) */
-    #world-modal .modal-content {
-        width: 90% !important;
+
+    /* Grid: 3 Columns instead of 2 (Compact!) */
+    .shop-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 5px !important;
+        padding: 5px !important;
     }
+    .shop-item {
+        padding: 5px !important;
+        min-height: 50px !important;
+    }
+    .item-name { font-size: 9px !important; height: 20px !important; }
+    .item-price { font-size: 9px !important; }
+
+
+    /* 3. WORLD TRAVEL: COMPACT CARDS */
     .world-card {
-        flex-direction: column !important; /* Stack Icon/Text and Button */
+        flex-direction: row !important; /* Keep side-by-side */
         align-items: center !important;
-        text-align: center !important;
-        padding: 10px !important;
+        padding: 8px !important;
+        min-height: 60px !important;
         gap: 10px;
     }
-    .world-info { text-align: center !important; margin: 0 !important; }
-    .world-icon { margin: 0 0 5px 0 !important; }
     
-    /* Make Travel Buttons Full Width */
-    .btn-travel, .btn-unlock {
-        width: 100% !important;
-        padding: 12px !important;
-        font-size: 12px !important;
+    .world-icon { 
+        font-size: 24px !important; 
+        margin-right: 5px !important; 
+    }
+    
+    .world-info h3 { 
+        font-size: 10px !important; 
+        margin-bottom: 2px !important;
+    }
+    .world-info small { 
+        font-size: 8px !important; 
+        display: block;
     }
 
-    /* 4. MAIN MENU & SETTINGS FIX */
+    /* Smaller Buttons */
+    .btn-travel, .btn-unlock {
+        padding: 6px 10px !important;
+        font-size: 9px !important;
+        width: auto !important; /* Don't stretch */
+        white-space: nowrap;
+    }
+
+
+    /* 4. MAIN MENU: SMALLER GRID */
     #mobile-menu-buttons {
-        gap: 10px !important;
+        gap: 8px !important;
     }
     .menu-btn {
-        padding: 10px !important;
-        min-height: 80px;
+        padding: 10px 5px !important;
+        min-height: 60px !important; /* Shorter buttons */
     }
     .menu-btn span {
-        font-size: 20px !important;
-    }
-    
-    /* Fix Settings Modal Width */
-    #settings-modal .modal-content {
-        width: 85% !important;
+        font-size: 18px !important; /* Smaller icons */
     }
 }
-
 
 
 
