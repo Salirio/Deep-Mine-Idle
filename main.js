@@ -1,6 +1,7 @@
 import { GameLogic } from './logic.js';
 import { UI } from './ui.js';
-import { State, Avatar } from './state.js'; // Added Avatar import
+import { State, Avatar } from './state.js'; 
+import { Worlds } from './data.js'; // <--- ADD THIS LINE
 import { AudioController } from './audio.js';
 import { DebugConsole } from './debug.js';
 
@@ -300,6 +301,7 @@ App.logout = function() {
     if (mobileNav) mobileNav.classList.add('nav-hidden'); // Nav ausblenden
     originalLogout.apply(App);
 };
+
 
 
 
