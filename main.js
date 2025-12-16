@@ -305,6 +305,100 @@ App.logout = function() {
     originalLogout.apply(App);
 };
 
+/* --- FINAL MOBILE FIXES (Paste at the very bottom of style.css) --- */
+@media (max-width: 900px) {
+
+    /* 1. GENERAL MODAL SCALING (Fixes 'Too Big' Menus) */
+    .modal-content {
+        width: 95% !important;       /* Fit to screen width */
+        max-width: 95% !important;   /* Never overflow width */
+        max-height: 85vh !important; /* Never overflow height */
+        padding: 10px !important;    /* Save space */
+        overflow-y: auto !important; /* Allow scrolling if content is too tall */
+        flex-direction: column !important; /* Stack everything vertically */
+    }
+
+    /* 2. PLAYER CARD FIX (The Split View Issue) */
+    #player-modal .modal-content {
+        height: auto !important; /* Let it grow naturally */
+    }
+    
+    .modal-left {
+        width: 100% !important;       /* Full width */
+        height: auto !important;
+        border-right: none !important;
+        border-bottom: 2px solid #333;
+        flex-direction: row !important; /* Put Avatar & Stats side-by-side */
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: 10px !important;
+    }
+
+    /* Shrink the Avatar on Mobile */
+    #avatar-preview-canvas {
+        width: 80px !important;
+        height: 120px !important; 
+        margin: 0 !important;
+    }
+
+    /* Adjust the Name Input */
+    #player-name-input {
+        font-size: 14px !important;
+        margin-bottom: 5px !important;
+        width: 100% !important;
+    }
+
+    /* Fix the Shop Tabs */
+    .shop-tabs {
+        width: 100%;
+        overflow-x: auto; /* Scroll sideways if tabs are too wide */
+        padding-right: 0 !important;
+    }
+    .shop-tab {
+        padding: 10px 5px !important;
+        font-size: 11px !important;
+        flex: none; /* Don't squish tabs */
+    }
+    
+    /* 3. WORLD TRAVEL FIX (The Big Cards) */
+    #world-modal .modal-content {
+        width: 90% !important;
+    }
+    .world-card {
+        flex-direction: column !important; /* Stack Icon/Text and Button */
+        align-items: center !important;
+        text-align: center !important;
+        padding: 10px !important;
+        gap: 10px;
+    }
+    .world-info { text-align: center !important; margin: 0 !important; }
+    .world-icon { margin: 0 0 5px 0 !important; }
+    
+    /* Make Travel Buttons Full Width */
+    .btn-travel, .btn-unlock {
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 12px !important;
+    }
+
+    /* 4. MAIN MENU & SETTINGS FIX */
+    #mobile-menu-buttons {
+        gap: 10px !important;
+    }
+    .menu-btn {
+        padding: 10px !important;
+        min-height: 80px;
+    }
+    .menu-btn span {
+        font-size: 20px !important;
+    }
+    
+    /* Fix Settings Modal Width */
+    #settings-modal .modal-content {
+        width: 85% !important;
+    }
+}
+
 
 
 
