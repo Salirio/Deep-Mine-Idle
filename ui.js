@@ -200,59 +200,61 @@ export const UI = {
     },
     closePetShop: () => document.getElementById('pet-modal').style.display = 'none',
 
-    openMobileMenu: function() {
-    document.getElementById('mobile-menu-modal').style.display = 'flex';
-    const grid = document.getElementById('mobile-menu-buttons');
-    grid.innerHTML = "";
-    
-    const Worlds = window.Worlds; 
-    const State = window.State;
-    
-    // Basische Prüfung: Wenn Worlds oder State fehlen, Notfallnachricht und Abbruch
-    if (!Worlds || !State || !State.activeWorld || !Worlds[State.activeWorld]) {
-        grid.innerHTML = "<div style='color:#c0392b; font-size:12px; padding:20px;'>Daten werden noch geladen. Bitte kurz warten.</div>";
-        return;
-    }
-
-    const activeWorldConf = Worlds[State.activeWorld].config;
-
-    // Definiere die Buttons, die vorher in der HUD waren:
-    const menuItems = [
-        // Diese Buttons sollten immer funktionieren
-        { icon: '🌍', label: 'WELTEN', onclick: 'openWorldTravel()' },
-        { icon: '🏆', label: 'ERFOLGE', onclick: 'openAchievements()' },
-        { icon: '🐾', label: 'BEGLEITER', onclick: 'openPetShop()' },
-        { icon: '⚖️', label: 'BÖRSE', onclick: 'openExchange()' },
+openMobileMenu: function() {
+        document.getElementById('mobile-menu-modal').style.display = 'flex';
         
-        // Prestige: Hängt von aktiver Welt-Konfiguration ab (kann fehlschlagen)
-        { icon: activeWorldConf.prestigeIcon || '💎', label: 'PRESTIGE', onclick: 'openPrestige()' },
-        
-        // Events: Hängt von Event-Status ab (kann fehlschlagen)
-        { icon: '🎁', label: 'EVENTS', onclick: 'openEventCenter()' }
-    ];
-
-    menuItems.forEach(item => {
-        // ZUSÄTZLICHE PRÜFUNG: Nur Buttons generieren, wenn die Funktion existiert
-        if (window[item.onclick.replace(/\(.*\)/, '')]) { 
-            const btn = document.createElement('button');
-            btn.className = 'menu-btn'; 
-            btn.innerHTML = `<span style="font-size:24px;">${item.icon}</span><br>${item.label}`;
-            btn.onclick = () => { 
-                eval(item.onclick); 
-                UI.closeMobileMenu(); 
-            };
-            grid.appendChild(btn);
+        // VERSUCH 1: Menü füllen
+        if(this.updateMobileMenuButtons()) {
+            // Erfolgreich gefüllt, alles gut.
         } else {
-             // Debugging-Hilfe: Wenn ein Button fehlt, wissen wir, welcher
-             console.log(`[MOBILE MENU] Funktion ${item.label} (${item.onclick}) ist nicht global verfügbar.`);
+            // Fehler, zeige die Lade-Nachricht und versuche es in 1s erneut
+            document.getElementById('mobile-menu-buttons').innerHTML = "<div style='color:#c0392b; font-size:12px; padding:20px;'>Daten werden noch geladen. Bitte kurz warten.</div>";
+            
+            // VERSUCH 2: Wiederholen, um Timing-Probleme zu umgehen
+            setTimeout(() => this.updateMobileMenuButtons(), 1000); 
         }
-    });
-},
+    },
 
+    // 2. closeMobileMenu (KORREKT)
     closeMobileMenu: function() {
         document.getElementById('mobile-menu-modal').style.display = 'none';
     },
-    
+
+    // 3. updateMobileMenuButtons (KORREKT)
+    updateMobileMenuButtons: function() {
+        const grid = document.getElementById('mobile-menu-buttons');
+        // Wenn das Menü-Gitter nicht existiert oder Worlds/State fehlen, abbrechen
+        if (!grid || !window.Worlds || !window.State || !window.State.activeWorld || !window.Worlds[window.State.activeWorld]) {
+             return false; // Signalisiert, dass es fehlgeschlagen ist
+        }
+
+        grid.innerHTML = "";
+        const Worlds = window.Worlds; 
+        const State = window.State;
+        const activeWorldConf = Worlds[State.activeWorld] ? Worlds[State.activeWorld].config : {};
+
+        const menuItems = [
+            { icon: '🌍', label: 'WELTEN', onclick: 'openWorldTravel()' },
+            { icon: activeWorldConf.prestigeIcon || '💎', label: 'PRESTIGE', onclick: 'openPrestige()' },
+            { icon: '🏆', label: 'ERFOLGE', onclick: 'openAchievements()' },
+            { icon: '🐾', label: 'BEGLEITER', onclick: 'openPetShop()' },
+            { icon: '⚖️', label: 'BÖRSE', onclick: 'openExchange()' },
+            { icon: '🎁', label: 'EVENTS', onclick: 'openEventCenter()' }
+        ];
+
+        menuItems.forEach(item => {
+            const funcName = item.onclick.replace(/\(.*\)/, '');
+            if (window[funcName]) { 
+                const btn = document.createElement('button');
+                btn.className = 'menu-btn'; 
+                btn.innerHTML = `<span style="font-size:24px;">${item.icon}</span><br>${item.label}`;
+                btn.onclick = () => { eval(item.onclick); UI.closeMobileMenu(); };
+                grid.appendChild(btn);
+            }
+        });
+        return true; // Signalisiert, dass es erfolgreich war
+    },
+
     openExchange: function() { document.getElementById('exchange-modal').style.display = 'flex'; this.updateExchangeRate(); },
     closeExchange: () => document.getElementById('exchange-modal').style.display = 'none',
     
@@ -847,5 +849,6 @@ export const UI = {
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
+
 
 
