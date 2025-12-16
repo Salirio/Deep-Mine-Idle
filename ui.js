@@ -785,6 +785,8 @@ openMobileMenu: function() {
             <div class="miner-actions"><button class="miner-btn" id="m-btn-${index}" onclick="GameLogic.buyMiner(${index})">Laden...</button><div class="gear-btn-square" onclick="GameLogic.openBotSkills(${index})">⚙️</div></div>`;
             list.appendChild(div);
         });
+
+        this.update();
     },
     
     renderShop: function() {
@@ -879,6 +881,7 @@ openMobileMenu: function() {
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
+
 
 
 
