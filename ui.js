@@ -269,12 +269,35 @@ openMobileMenu: function() {
         const leaveBtn = document.getElementById('leave-xmas-btn');
         const travelBtn = document.getElementById('btn-xmas-travel');
         
+        // 1. Check if Event is Completed
+        if (State.eventsCompleted && State.eventsCompleted.christmas) {
+             if(travelBtn) {
+                 travelBtn.innerText = "ABGESCHLOSSEN";
+                 travelBtn.style.background = "#7f8c8d"; // Grey color
+                 travelBtn.style.cursor = "not-allowed";
+                 travelBtn.disabled = true;
+                 travelBtn.onclick = null; // Remove click action
+                 travelBtn.style.display = 'block'; 
+             }
+             if(leaveBtn) leaveBtn.style.display = 'none';
+             return; // Stop here
+        }
+
+        // 2. Standard Logic (Active vs Inactive)
         if (State.activeWorld === 'christmas') {
             if(leaveBtn) leaveBtn.style.display = 'block';
             if(travelBtn) travelBtn.style.display = 'none';
         } else {
             if(leaveBtn) leaveBtn.style.display = 'none';
-            if(travelBtn) travelBtn.style.display = 'block';
+            if(travelBtn) {
+                 travelBtn.style.display = 'block';
+                 // Reset styles in case it was previously completed (e.g. after reset)
+                 travelBtn.innerText = "REISEN";
+                 travelBtn.style.background = "#c0392b"; 
+                 travelBtn.style.cursor = "pointer";
+                 travelBtn.disabled = false;
+                 travelBtn.onclick = () => GameLogic.enterChristmasWorld(); 
+            }
         }
     },
     
@@ -856,6 +879,7 @@ openMobileMenu: function() {
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
+
 
 
 
