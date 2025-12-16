@@ -176,6 +176,10 @@ export const GameLogic = {
     },
     
     finishChristmasEvent: function() {
+
+        finishChristmasEvent: function() {
+         State.eventsCompleted.christmas = true;
+
          // Reward Artifact
          if(!State.artifactsFound.includes('christmas_star')) {
              State.artifactsFound.push('christmas_star');
@@ -447,3 +451,4 @@ export const GameLogic = {
         }
     }
 };
+
