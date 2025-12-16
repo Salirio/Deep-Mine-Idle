@@ -220,17 +220,19 @@ openMobileMenu: function() {
         document.getElementById('mobile-menu-modal').style.display = 'none';
     },
 
-    // 3. updateMobileMenuButtons (KORREKT)
-    updateMobileMenuButtons: function() {
+updateMobileMenuButtons: function() {
         const grid = document.getElementById('mobile-menu-buttons');
-        // Wenn das Menü-Gitter nicht existiert oder Worlds/State fehlen, abbrechen
-        if (!grid || !window.Worlds || !window.State || !window.State.activeWorld || !window.Worlds[window.State.activeWorld]) {
-             return false; // Signalisiert, dass es fehlgeschlagen ist
+        
+        // FIX: Remove 'window.' prefixes. Use the imports (Worlds, State) directly.
+        if (!grid || !Worlds || !State || !State.activeWorld || !Worlds[State.activeWorld]) {
+             return false; // Returns false if data isn't ready
         }
 
         grid.innerHTML = "";
-        const Worlds = window.Worlds; 
-        const State = window.State;
+        
+        // FIX: Use the 'State' and 'Worlds' directly from imports
+        // (Removed lines that tried to grab them from window)
+        
         const activeWorldConf = Worlds[State.activeWorld] ? Worlds[State.activeWorld].config : {};
 
         const menuItems = [
@@ -248,11 +250,12 @@ openMobileMenu: function() {
                 const btn = document.createElement('button');
                 btn.className = 'menu-btn'; 
                 btn.innerHTML = `<span style="font-size:24px;">${item.icon}</span><br>${item.label}`;
+                // Keep UI.closeMobileMenu() here
                 btn.onclick = () => { eval(item.onclick); UI.closeMobileMenu(); };
                 grid.appendChild(btn);
             }
         });
-        return true; // Signalisiert, dass es erfolgreich war
+        return true; // Success!
     },
 
     openExchange: function() { document.getElementById('exchange-modal').style.display = 'flex'; this.updateExchangeRate(); },
@@ -849,6 +852,7 @@ openMobileMenu: function() {
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
+
 
 
 
