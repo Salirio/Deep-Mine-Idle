@@ -203,37 +203,39 @@ export const UI = {
 openMobileMenu: function() {
         document.getElementById('mobile-menu-modal').style.display = 'flex';
         
-        // VERSUCH 1: Menü füllen
+        // Try to fill the menu immediately
         if(this.updateMobileMenuButtons()) {
-            // Erfolgreich gefüllt, alles gut.
+            // Success
         } else {
-            // Fehler, zeige die Lade-Nachricht und versuche es in 1s erneut
-            document.getElementById('mobile-menu-buttons').innerHTML = "<div style='color:#c0392b; font-size:12px; padding:20px;'>Daten werden noch geladen. Bitte kurz warten.</div>";
+            // Data not ready, show loading message and retry in 1s
+            const grid = document.getElementById('mobile-menu-buttons');
+            if(grid) grid.innerHTML = "<div style='color:#c0392b; font-size:12px; padding:20px;'>Daten werden noch geladen. Bitte kurz warten.</div>";
             
-            // VERSUCH 2: Wiederholen, um Timing-Probleme zu umgehen
             setTimeout(() => this.updateMobileMenuButtons(), 1000); 
         }
     },
 
-    // 2. closeMobileMenu (KORREKT)
     closeMobileMenu: function() {
         document.getElementById('mobile-menu-modal').style.display = 'none';
     },
 
-updateMobileMenuButtons: function() {
+    updateMobileMenuButtons: function() {
         const grid = document.getElementById('mobile-menu-buttons');
         
-        // FIX: Remove 'window.' prefixes. Use the imports (Worlds, State) directly.
-        if (!grid || !Worlds || !State || !State.activeWorld || !Worlds[State.activeWorld]) {
-             return false; // Returns false if data isn't ready
+        // FIX: Ensure elements and data exist (using imported variables)
+        if (!grid || !window.Worlds || !window.State || !window.State.activeWorld || !window.Worlds[window.State.activeWorld]) {
+             // Fallback: If window.State is missing, try using local imports
+             if (!grid || !Worlds || !State || !State.activeWorld || !Worlds[State.activeWorld]) {
+                 return false; 
+             }
         }
 
+        // Use imports if window versions are missing
+        const activeState = window.State || State;
+        const activeWorlds = window.Worlds || Worlds;
+        const activeWorldConf = activeWorlds[activeState.activeWorld] ? activeWorlds[activeState.activeWorld].config : {};
+
         grid.innerHTML = "";
-        
-        // FIX: Use the 'State' and 'Worlds' directly from imports
-        // (Removed lines that tried to grab them from window)
-        
-        const activeWorldConf = Worlds[State.activeWorld] ? Worlds[State.activeWorld].config : {};
 
         const menuItems = [
             { icon: '🌍', label: 'WELTEN', onclick: 'openWorldTravel()' },
@@ -246,16 +248,17 @@ updateMobileMenuButtons: function() {
 
         menuItems.forEach(item => {
             const funcName = item.onclick.replace(/\(.*\)/, '');
+            // Check if the global function exists
             if (window[funcName]) { 
                 const btn = document.createElement('button');
                 btn.className = 'menu-btn'; 
                 btn.innerHTML = `<span style="font-size:24px;">${item.icon}</span><br>${item.label}`;
-                // Keep UI.closeMobileMenu() here
+                // Execute action and close menu
                 btn.onclick = () => { eval(item.onclick); UI.closeMobileMenu(); };
                 grid.appendChild(btn);
             }
         });
-        return true; // Success!
+        return true; 
     },
 
     openExchange: function() { document.getElementById('exchange-modal').style.display = 'flex'; this.updateExchangeRate(); },
@@ -274,6 +277,7 @@ updateMobileMenuButtons: function() {
             if(travelBtn) travelBtn.style.display = 'block';
         }
     },
+    
     closeEventCenter: () => document.getElementById('event-modal').style.display = 'none',
     
     openEventShop: function() { 
@@ -852,6 +856,7 @@ updateMobileMenuButtons: function() {
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
+
 
 
 
