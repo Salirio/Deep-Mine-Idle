@@ -176,11 +176,12 @@ export const GameLogic = {
     },
     
     finishChristmasEvent: function() {
-
-        finishChristmasEvent: function() {
+         // 1. Mark Event as Completed
+         // FIX: Ensure eventsCompleted object exists before setting property
+         if (!State.eventsCompleted) State.eventsCompleted = {};
          State.eventsCompleted.christmas = true;
-
-         // Reward Artifact
+         
+         // 2. Reward Artifact
          if(!State.artifactsFound.includes('christmas_star')) {
              State.artifactsFound.push('christmas_star');
              // Show Artifact Toast
@@ -188,7 +189,7 @@ export const GameLogic = {
              if(star) UI.showArtifactToast(star);
          }
          
-         // Show Full Screen Win Overlay
+         // 3. Show Full Screen Win Overlay
          const overlay = document.getElementById('event-win-overlay');
          if(overlay) {
              overlay.style.display = 'flex';
@@ -200,7 +201,7 @@ export const GameLogic = {
          } else {
              this.leaveChristmasWorld();
          }
-    },
+    }, // <--- Vital Comma
     
     buyMiner: function(index) {
         let act = this.getActive();
@@ -451,4 +452,5 @@ export const GameLogic = {
         }
     }
 };
+
 
