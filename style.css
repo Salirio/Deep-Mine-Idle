@@ -831,14 +831,10 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     background: #34495e;
 }
 
-/* Muss auch in style.css, um die Navigation bei Login/Logout auszublenden */
-.nav-hidden {
+/* Specificity Fix: Target ID + Class to override the default ID style */
+#mobile-bottom-nav.nav-hidden {
     display: none !important;
 }
 
-/* Hides the mobile menu during login/loading */
-.nav-hidden {
-    display: none !important;
-}
 
 
