@@ -110,6 +110,11 @@ window.GameLogic = GameLogic;
 window.UI = UI;
 window.AudioController = AudioController;
 
+// FIX: Expose Data and State to Window so UI.js can find them
+window.State = State;
+window.Avatar = Avatar;
+window.Worlds = Worlds;
+
 // Bridge Helper Functions (Mappings from your old game.js)
 window.buyMiner = (i) => GameLogic.buyMiner(i);
 window.travelTo = (w) => GameLogic.travelTo(w);
@@ -295,6 +300,7 @@ App.logout = function() {
     if (mobileNav) mobileNav.classList.add('nav-hidden'); // Nav ausblenden
     originalLogout.apply(App);
 };
+
 
 
 
