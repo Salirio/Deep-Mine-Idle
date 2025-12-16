@@ -276,6 +276,11 @@ const originalStartGame = App.startGame;
 App.startGame = function() {
     originalStartGame.apply(App); // Führt die ursprüngliche startGame Logik aus
     
+    // HIER kommt der AUFRUF der neuen Funktion
+    if(window.UI && window.UI.updateMobileMenuButtons) {
+        window.UI.updateMobileMenuButtons();
+    }
+    
     if (window.innerWidth <= 900) {
         // Navigationsleiste einblenden
         if (mobileNav) mobileNav.classList.remove('nav-hidden'); 
@@ -290,5 +295,6 @@ App.logout = function() {
     if (mobileNav) mobileNav.classList.add('nav-hidden'); // Nav ausblenden
     originalLogout.apply(App);
 };
+
 
 
