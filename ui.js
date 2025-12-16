@@ -773,20 +773,61 @@ openMobileMenu: function() {
 
     renderMinerList: function() {
         if (!LogicRef) return;
-        const list = document.getElementById('miner-list'); 
+        const list = document.getElementById('miner-list');
+        // FIX: If the list is missing (e.g. not in this view), stop.
+        if (!list) return;
+
         list.innerHTML = ""; 
-        let conf = Worlds[State.activeWorld]; 
         
+        let conf = Worlds[State.activeWorld]; 
+        let act = State[State.activeWorld];
+
         conf.miners.forEach((type, index) => {
-            let div = document.createElement('div'); div.className = "miner-card"; div.id = `miner-card-${index}`;
+            let m = act.miners[index];
+            
+            // 1. Calculate Price NOW (Don't wait for update)
+            let costMult = 1;
+            if(State.artifactsFound && State.artifactsFound.includes('fossil')) costMult = 0.9;
+            if(m.skills && m.skills.cost) costMult -= (m.skills.cost * 0.02);
+            let baseCost = (m.level === 0) ? type.baseCost : Math.floor(type.baseCost * Math.pow(1.20, m.level));
+            let cost = Math.floor(baseCost * costMult);
+            
+            // 2. Generate the text NOW
+            let btnText = (m.level === 0 ? "Kaufen" : "Upgr") + "<br>" + LogicRef.formatNumber(cost);
+            let canAfford = act.gold >= cost;
+
+            // 3. DPS
+            let milestoneBonus = Math.pow(2, Math.floor(m.level / 10));
+            let dpsVal = (m.level * type.basePower) * milestoneBonus;
+
+            // 4. Create DIV
+            let div = document.createElement('div'); 
+            div.className = "miner-card"; 
+            div.id = `miner-card-${index}`;
+            
+            // NOTE: No "Laden..." text here! It uses ${btnText} directly.
             div.innerHTML = `
-            <div class="miner-icon-area"><div class="bot-body" id="bot-body-${index}"><div class="bot-arm"></div></div></div>
-            <div class="miner-info"><h4 style="color:${type.color}">${type.name} <span id="m-lvl-${index}" style="color:#fff; font-size:10px;">Lvl 0</span></h4><p>DPS: <span id="m-dps-${index}">0</span></p></div>
-            <div class="miner-actions"><button class="miner-btn" id="m-btn-${index}" onclick="GameLogic.buyMiner(${index})">Laden...</button><div class="gear-btn-square" onclick="GameLogic.openBotSkills(${index})">⚙️</div></div>`;
+            <div class="miner-icon-area">
+                <div class="bot-body" id="bot-body-${index}">
+                    <div class="bot-arm"></div>
+                </div>
+            </div>
+            <div class="miner-info">
+                <h4 style="color:${type.color}">
+                    ${type.name} 
+                    <span id="m-lvl-${index}" style="color:#fff; font-size:10px;">Lvl ${m.level}</span>
+                </h4>
+                <p>DPS: <span id="m-dps-${index}">${LogicRef.formatNumber(dpsVal)}</span></p>
+            </div>
+            <div class="miner-actions">
+                <button class="miner-btn" id="m-btn-${index}" onclick="GameLogic.buyMiner(${index})" ${canAfford ? '' : 'disabled'}>
+                    ${btnText}
+                </button>
+                <div class="gear-btn-square" onclick="GameLogic.openBotSkills(${index})">⚙️</div>
+            </div>`;
+            
             list.appendChild(div);
         });
-
-        this.update();
     },
     
     renderShop: function() {
@@ -881,6 +922,7 @@ openMobileMenu: function() {
         if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
     }
 };
+
 
 
 
