@@ -246,6 +246,11 @@ openMobileMenu: function() {
             { icon: '🎁', label: 'EVENTS', onclick: 'openEventCenter()' }
         ];
 
+        // We use window.State because this runs in the global scope
+        if (activeState.activeEvent === 'xmas') {
+            menuItems.push({ icon: '❄️', label: 'XMAS SHOP', onclick: 'openEventShop()' });
+        }
+
         menuItems.forEach(item => {
             const funcName = item.onclick.replace(/\(.*\)/, '');
             // Check if the global function exists
