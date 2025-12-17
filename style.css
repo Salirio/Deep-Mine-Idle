@@ -772,6 +772,14 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         margin: 0 !important; border: 1px solid #444; background: #000;
     }
 
+    /* FIX: Shrink the gold bar slightly so borders/shadows aren't cut off */
+    .big-gold-display {
+        width: 94% !important; /* Leave 3% space on each side */
+        margin: 0 auto 10px auto !important; /* Center it */
+    }
+
+    
+
     /* Name & Stats Area */
     #player-name-input { width: 120px !important; font-size: 14px !important; text-align: left !important; }
     #player-stats { font-size: 10px !important; text-align: left !important; }
