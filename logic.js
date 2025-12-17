@@ -206,6 +206,11 @@ export const GameLogic = {
     buyMiner: function(index) {
         let act = this.getActive();
         let conf = this.getConfig();
+
+        if (!act.miners[index]) {
+            act.miners[index] = { level: 0, skills: { dps: 0, cost: 0, synergy: 0 } };
+        }
+
         let m = act.miners[index];
         let type = conf.miners[index];
         
@@ -324,7 +329,10 @@ export const GameLogic = {
         act.prestigeCount++;
         
         act.gold = 0; act.depth = 1; act.currentHp = 1; act.pickLevel = 0;
-        act.miners.forEach(m => m.level = 0);
+        act.miners.forEach(m => {
+            m.level = 0;
+            m.skills = { dps: 0, cost: 0, synergy: 0 };
+        });
         
         UI.generateBlockTexture();
         UI.renderMinerList();

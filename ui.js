@@ -798,7 +798,14 @@ openMobileMenu: function() {
 
             // 3. DPS
             let milestoneBonus = Math.pow(2, Math.floor(m.level / 10));
-            let dpsVal = (m.level * type.basePower) * milestoneBonus;
+
+            // FIX: Add Skill Multiplier to the display number
+            let skillMult = 1;
+            if (m.skills && m.skills.dps) {
+                skillMult += (m.skills.dps * 0.20);
+            }
+
+            let dpsVal = (m.level * type.basePower) * milestoneBonus * skillMult;
 
             // 4. Create DIV
             let div = document.createElement('div'); 

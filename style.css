@@ -706,7 +706,25 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     #right-col { display: none; width: 100% !important; padding: 5px !important; }
 
     /* 2. HIDE DESKTOP HUD */
-    .hud-btn, .right-col-tabs, #fabric-display-container, #avatar-btn { display: none !important; }
+    /* We hide normal buttons and tabs... */
+    .hud-btn, .right-col-tabs { display: none !important; }
+
+    /* ...BUT we force the Avatar & Fabric to show up! */
+    #avatar-btn {
+        display: flex !important; 
+        top: 10px !important; 
+        left: 10px !important; 
+        width: 45px !important; /* Slightly smaller for mobile */
+        height: 45px !important;
+        z-index: 500 !important; /* Ensure it floats on top */
+    }
+
+    #fabric-display-container {
+        display: flex !important;
+        top: 65px !important; /* Position it right below the avatar */
+        left: 15px !important; 
+        z-index: 500 !important;
+    }
     
     /* 3. MOBILE NAVIGATION BAR */
     #mobile-bottom-nav {
