@@ -778,7 +778,44 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         margin: 0 auto 10px auto !important; /* Center it */
     }
 
+    /* 1. Shrink the Game Window (The digging area) */
+    #game-wrapper {
+        width: 260px !important; /* Smaller square (was 320px) */
+        height: 260px !important;
+        margin-bottom: 10px !important;
+        border-width: 4px !important; /* Thinner border looks better on small screens */
+    }
     
+    /* Ensure the canvas inside shrinks too */
+    #gameCanvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* 2. Fix the Tool Shop Grid (Where Overdrive lives) */
+    #tool-shop {
+        width: 94% !important; /* Fits inside the screen like the gold bar */
+        gap: 5px !important;   /* Smaller gap between buttons */
+        margin-bottom: 20px !important; /* Space at the bottom for scrolling */
+    }
+
+    /* 3. Make Buttons More Compact */
+    .tool-btn {
+        padding: 8px 2px !important; /* Less padding = smaller buttons */
+        font-size: 11px !important;  /* Slightly smaller text */
+        min-height: 50px !important; /* Consistent height */
+    }
+
+    /* 4. Shrink the Header Logo slightly to save vertical space */
+    .logo-container {
+        padding: 5px 15px !important;
+    }
+    .arcade-title {
+        font-size: 16px !important; 
+    }
+    .logo-icon {
+        font-size: 20px !important;
+    }
 
     /* Name & Stats Area */
     #player-name-input { width: 120px !important; font-size: 14px !important; text-align: left !important; }
