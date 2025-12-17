@@ -362,7 +362,7 @@ openMobileMenu: function() {
         const buy = document.getElementById('ex-buy-select').value;
         document.getElementById('ex-sell-balance').innerText = LogicRef.formatNumber(State[sell].gold);
         document.getElementById('ex-buy-balance').innerText = LogicRef.formatNumber(State[buy].gold);
-        document.getElementById('ex-rate-display').innerText = "Kurs: 1000 : 1"; 
+        document.getElementById('ex-rate-display').innerText = "Kurs: 10Mio : 1"; 
     },
     
     switchMainTab: function(tab) {
@@ -905,33 +905,179 @@ openMobileMenu: function() {
     },
     
     drawAvatar: function(ctx, w, h) {
-        ctx.clearRect(0,0,w,h);
-        let cx = w/2; let cy = h/2; let scale = w / 24; 
-        const roundRect = (x, y, w, h, r) => { ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill(); };
-        const get = (cat) => { let id = Avatar.equipped[cat]; return Worlds.cosmetics[cat].find(i => i.id === id) || { id: 'none', color: '#000' }; };
-        let body = get('body'); let legs = get('legs'); let hat = get('hat');
-
-        if(Avatar.equipped.wings !== 'none') { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(cx, cy-4*scale, 10*scale, 3*scale, 0, 0, Math.PI*2); ctx.fill(); }
+        ctx.clearRect(0, 0, w, h);
         
-        ctx.fillStyle = legs.color || '#2980b9'; roundRect(cx - 3.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale); roundRect(cx + 0.5*scale, cy + 6.5*scale, 3*scale, 6.5*scale, 0.5*scale);
-        
-        ctx.fillStyle = body.color || '#7f8c8d'; roundRect(cx - 4.5*scale, cy - 2*scale, 9*scale, 9*scale, 1*scale);
+        let cx = w / 2;
+        let cy = h / 2 + (h * 0.05);
+        let scale = w / 22;
 
-        ctx.fillStyle = "#ffccaa"; 
-        roundRect(cx - 6.5*scale, cy, 2*scale, 6*scale, 0.5*scale); 
-        roundRect(cx + 4.5*scale, cy, 2*scale, 6*scale, 0.5*scale); 
+        // HELPER: Draw a "Shiny" shape
+        const drawPoly = (points, color, borderColor = "rgba(0,0,0,0.5)") => {
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+            ctx.closePath();
+            ctx.fillStyle = color; ctx.fill();
+            ctx.lineWidth = Math.max(1.5, scale * 0.1);
+            ctx.strokeStyle = borderColor; ctx.stroke();
+        };
 
-        ctx.fillStyle = "#ffccaa"; roundRect(cx - 3.5*scale, cy - 8.5*scale, 7*scale, 7*scale, 1.5*scale);
-        
+        const drawRect = (x, y, w, h, r, c) => {
+            ctx.beginPath();
+            if(ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h);
+            ctx.fillStyle = c; ctx.fill();
+            ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = Math.max(1.5, scale * 0.1); ctx.stroke();
+            
+            // Shine
+            ctx.fillStyle = "rgba(255,255,255,0.1)";
+            ctx.beginPath(); 
+            if(ctx.roundRect) ctx.roundRect(x+w*0.1, y, w*0.8, h*0.3, r);
+            ctx.fill();
+        };
+
+        const get = (cat) => {
+             // Safe fetch with fallback
+             let list = (window.Worlds && window.Worlds.cosmetics) ? window.Worlds.cosmetics : Worlds.cosmetics;
+             let item = list[cat].find(i => i.id === Avatar.equipped[cat]);
+             return item || { id: 'none', color: '#000' };
+        };
+
+        let body = get('body'); let legs = get('legs'); let hat = get('hat'); 
+        let wings = get('wings'); let glass = get('glasses');
+
+        // --- 1. WINGS (Background) ---
+        if (Avatar.equipped.wings !== 'none') {
+            ctx.save();
+            ctx.translate(cx, cy - 3*scale);
+            if (wings.type === 'angel') {
+                // Feathery White Wings
+                ctx.fillStyle = "#fff"; ctx.strokeStyle = "#ccc"; ctx.lineWidth = 2;
+                [ -1, 1 ].forEach(side => {
+                    ctx.beginPath();
+                    ctx.moveTo(side * 2*scale, 0);
+                    ctx.bezierCurveTo(side * 12*scale, -5*scale, side * 15*scale, 5*scale, side * 2*scale, 8*scale);
+                    ctx.fill(); ctx.stroke();
+                });
+            } else if (wings.type === 'demon') {
+                // Spiky Bat Wings
+                ctx.fillStyle = "#c0392b"; ctx.strokeStyle = "#000"; ctx.lineWidth = 2;
+                [ -1, 1 ].forEach(side => {
+                    ctx.beginPath();
+                    ctx.moveTo(side * 2*scale, 0);
+                    ctx.lineTo(side * 12*scale, -6*scale); // Tip
+                    ctx.quadraticCurveTo(side * 8*scale, 0, side * 10*scale, 4*scale); // Webbing
+                    ctx.quadraticCurveTo(side * 5*scale, 2*scale, side * 2*scale, 6*scale);
+                    ctx.closePath(); ctx.fill(); ctx.stroke();
+                });
+            } else {
+                // Jetpack / Generic
+                drawRect(-8*scale + cx, -5*scale + cy, 16*scale, 4*scale, 1*scale, wings.color || "#95a5a6");
+            }
+            ctx.restore();
+        }
+
+        // --- 2. LEGS ---
+        let legColor = legs.color || '#2980b9';
+        drawRect(cx - 3.5*scale, cy + 5*scale, 3*scale, 7*scale, 1*scale, legColor);
+        drawRect(cx + 0.5*scale, cy + 5*scale, 3*scale, 7*scale, 1*scale, legColor);
+
+        // --- 3. BODY ---
+        let bodyColor = body.color || '#7f8c8d';
+        let bw = 10*scale; 
+        if(body.type === 'hoodie' || body.type === 'baggy') bw = 11*scale; // Wider
+        drawRect(cx - bw/2, cy - 3*scale, bw, 9*scale, 2*scale, bodyColor);
+
+        // Suit Details (Tie)
+        if(body.id === 'suit') {
+            drawPoly([{x:cx, y:cy-2*scale}, {x:cx-1*scale, y:cy+2*scale}, {x:cx, y:cy+4*scale}, {x:cx+1*scale, y:cy+2*scale}], "#c0392b");
+        }
+        // Hoodie Pocket
+        if(body.type === 'hoodie') {
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.beginPath(); ctx.roundRect(cx - 3*scale, cy + 3*scale, 6*scale, 2*scale, 1*scale); ctx.fill();
+        }
+
+        // --- 4. HEAD ---
+        drawRect(cx - 4*scale, cy - 10*scale, 8*scale, 8*scale, 2.5*scale, "#ffccaa");
+
+        // --- 5. FACE ---
+        // Eyes
         ctx.fillStyle = "#fff"; 
-        ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill(); 
-        ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 1*scale, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - 1.8*scale, cy - 7*scale, 1.4*scale, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 1.8*scale, cy - 7*scale, 1.4*scale, 0, Math.PI*2); ctx.fill();
         
         ctx.fillStyle = "#000"; 
-        ctx.beginPath(); ctx.arc(cx - 1.5*scale, cy - 6*scale, 0.3*scale, 0, Math.PI*2); ctx.fill(); 
-        ctx.beginPath(); ctx.arc(cx + 1.5*scale, cy - 6*scale, 0.3*scale, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx - 1.8*scale, cy - 7*scale, 0.5*scale, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 1.8*scale, cy - 7*scale, 0.5*scale, 0, Math.PI*2); ctx.fill();
 
-        if(hat.id !== 'none') { ctx.fillStyle = hat.color || '#fff'; roundRect(cx - 4*scale, cy - 9.5*scale, 8*scale, 3*scale, 1*scale); }
+        // Glasses Layer
+        if(glass.id !== 'none') {
+            if(glass.type === 'visor') {
+                // Cyclops Visor
+                drawRect(cx - 4*scale, cy - 8*scale, 8*scale, 2*scale, 0.5*scale, glass.color || "#e74c3c");
+            } else if (glass.type === 'shades') {
+                // Cool Sunglasses
+                ctx.fillStyle = "#111";
+                ctx.beginPath(); ctx.roundRect(cx - 4*scale, cy - 8*scale, 3.5*scale, 2*scale, 0.5*scale); ctx.fill();
+                ctx.beginPath(); ctx.roundRect(cx + 0.5*scale, cy - 8*scale, 3.5*scale, 2*scale, 0.5*scale); ctx.fill();
+                ctx.strokeStyle = "#111"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx-1*scale, cy-7.5*scale); ctx.lineTo(cx+1*scale, cy-7.5*scale); ctx.stroke();
+            } else {
+                 // Nerd Glasses (Outlines)
+                 ctx.strokeStyle = "#333"; ctx.lineWidth = scale * 0.3;
+                 ctx.strokeRect(cx - 3.5*scale, cy - 8*scale, 3*scale, 2.5*scale);
+                 ctx.strokeRect(cx + 0.5*scale, cy - 8*scale, 3*scale, 2.5*scale);
+                 ctx.beginPath(); ctx.moveTo(cx-0.5*scale, cy-7*scale); ctx.lineTo(cx+0.5*scale, cy-7*scale); ctx.stroke();
+            }
+        }
+
+        // --- 6. HAT ---
+        let hc = hat.color || "#333";
+        if(hat.id !== 'none') {
+            if (hat.type === 'cap') {
+                // Baseball Cap
+                drawRect(cx - 4.2*scale, cy - 12*scale, 8.4*scale, 3*scale, 1*scale, hc); // Dome
+                drawRect(cx - 4.5*scale, cy - 10*scale, 9*scale, 1*scale, 0.5*scale, hc); // Visor
+            } 
+            else if (hat.type === 'tophat') {
+                // Tophat
+                drawRect(cx - 5*scale, cy - 10*scale, 10*scale, 1*scale, 0, "#111"); // Brim
+                drawRect(cx - 3.5*scale, cy - 16*scale, 7*scale, 6*scale, 0, "#111"); // Top
+                drawRect(cx - 3.5*scale, cy - 11.5*scale, 7*scale, 1*scale, 0, "#c0392b"); // Ribbon
+            } 
+            else if (hat.type === 'crown') {
+                // Gold Crown with points
+                ctx.fillStyle = "#f1c40f"; ctx.strokeStyle = "#f39c12";
+                ctx.beginPath();
+                ctx.moveTo(cx - 4*scale, cy - 10*scale); // Bottom Left
+                ctx.lineTo(cx + 4*scale, cy - 10*scale); // Bottom Right
+                ctx.lineTo(cx + 4*scale, cy - 14*scale); // Top Right
+                ctx.lineTo(cx + 2*scale, cy - 12*scale); // Dip
+                ctx.lineTo(cx, cy - 15*scale); // Peak
+                ctx.lineTo(cx - 2*scale, cy - 12*scale); // Dip
+                ctx.lineTo(cx - 4*scale, cy - 14*scale); // Top Left
+                ctx.closePath(); ctx.fill(); ctx.stroke();
+            }
+            else if (hat.type === 'antlers') {
+                // Reindeer Antlers
+                ctx.strokeStyle = "#8d6e63"; ctx.lineWidth = scale * 0.6; ctx.lineCap = "round";
+                [ -1, 1 ].forEach(side => {
+                    ctx.beginPath();
+                    ctx.moveTo(cx + (side * 2*scale), cy - 10*scale);
+                    ctx.lineTo(cx + (side * 5*scale), cy - 14*scale); // Main branch
+                    ctx.moveTo(cx + (side * 3*scale), cy - 11.5*scale);
+                    ctx.lineTo(cx + (side * 4*scale), cy - 10*scale); // Small nub
+                    ctx.stroke();
+                });
+            }
+            else {
+                // Generic Helmet/Hat
+                drawRect(cx - 4.5*scale, cy - 12*scale, 9*scale, 3*scale, 1*scale, hc);
+            }
+        }
+        
+        // --- 7. HANDS (Always on top) ---
+        drawRect(cx - 7*scale, cy, 2.5*scale, 2.5*scale, 0.5*scale, "#ffccaa");
+        drawRect(cx + 4.5*scale, cy, 2.5*scale, 2.5*scale, 0.5*scale, "#ffccaa");
     }
 };
 

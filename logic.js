@@ -449,16 +449,22 @@ export const GameLogic = {
         
         let sellSource = State[sellType];
         let buySource = State[buyType];
+
+        // FIX 1: Prevent trading if the target world is locked!
+        if (!buySource.unlocked) {
+            alert("Du hast diese Welt noch nicht entdeckt!");
+            return;
+        }
+
         let amount = Math.floor(sellSource.gold * percent);
         
         if(amount > 0) {
             sellSource.gold -= amount;
-            let rate = 0.001; // 1000 to 1
+            // FIX 2: Adjusted Rate (10 Million to 1) to prevent game breaking
+            let rate = 0.0000001; 
             buySource.gold += Math.floor(amount * rate);
             UI.update();
             UI.updateExchangeRate();
         }
     }
 };
-
-
