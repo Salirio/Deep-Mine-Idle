@@ -6,14 +6,47 @@ import { UI } from './ui.js';
 export const GameLogic = {
     getActive: () => State[State.activeWorld],
     getConfig: () => Worlds[State.activeWorld],
+
+    getPetBonus: function(type) {
+        let mult = 0;
+        State.ownedPets.forEach(id => {
+            let pet = Worlds.pets.find(p => p.id === id);
+            if(pet && pet.type === type) mult += pet.val;
+        });
+        return mult;
+    },
     
     formatNumber: function(num) {
+        // Standard Zahlen (Deutsch)
         if (num < 1000000) return Math.floor(num).toLocaleString('de-DE');
         if (num < 1e9) return (num / 1e6).toFixed(2) + " Mio";
         if (num < 1e12) return (num / 1e9).toFixed(2) + " Mrd";
         if (num < 1e15) return (num / 1e12).toFixed(2) + " Bio";
-        if (num < 1e18) return (num / 1e15).toFixed(2) + " Brd";
-        return num.toExponential(2);
+        if (num < 1e18) return (num / 1e15).toFixed(2) + " Brd"; // Bis Billiarde
+        
+        // --- NEU: Idle-Game Notation (aa, ab, ac...) ab 1e18 ---
+        
+        // Das Alphabet für die Suffixe
+        const alphabet = "abcdefghijklmnopqrstuvwxyz";
+        
+        // Wir starten bei 1e18 (Trillion), das ist unser "Nullpunkt" für Buchstaben
+        let exponent = Math.floor(Math.log10(num));
+        // Alle 3 Nullen (1000er Schritt) gibt es einen neuen Buchstaben-Code
+        let step = Math.floor((exponent - 18) / 3); 
+        
+        // Wir berechnen die zwei Buchstaben (z.B. Index 0 = 'aa', Index 1 = 'ab')
+        // Das erlaubt Kombinationen bis 'zz' (das ist riesig!)
+        let char1 = Math.floor(step / 26);
+        let char2 = step % 26;
+        
+        // Falls die Zahl SO riesig ist, dass wir über 'zz' hinausgehen, fallback:
+        if (char1 >= 26) return num.toExponential(2);
+
+        let suffix = alphabet[char1] + alphabet[char2];
+        
+        // Den Wert runterrechnen, damit er lesbar ist (z.B. 12.50 ab)
+        let denominator = Math.pow(10, 18 + (step * 3));
+        return (num / denominator).toFixed(2) + " " + suffix;
     },
 
     calculateDPS: function() {
@@ -49,6 +82,7 @@ export const GameLogic = {
         if (State.artifactsFound.includes('christmas_star')) multiplier += 0.50;
         
         let prestigeMult = 1 + (act.prestige * 0.25);
+        dps *= (1 + this.getPetBonus('dps'));
         return dps * multiplier * prestigeMult;
     },
 
@@ -73,6 +107,38 @@ export const GameLogic = {
         if(!isAuto && !dmg) {
              let conf = this.getConfig();
              basePower = conf.picks[act.pickLevel].power;
+
+             // --- FIX START: APPLY CLICK SKILLS ---
+             
+             // Skill 1: Base Boost (+10% per level)
+             let lvlBase = act.clickSkillLevels[0] || 0;
+             if (lvlBase > 0) basePower *= (1 + (lvlBase * 0.10));
+
+             // Skill 3: Titan Multiplier (+5% per level)
+             let lvlMulti = act.clickSkillLevels[2] || 0;
+             if (lvlMulti > 0) basePower *= (1 + (lvlMulti * 0.05));
+
+             // Aetherium Prestige Bonus
+             if (act.clickUpgrade) basePower *= (1 + act.clickUpgrade);
+             
+             // Buffs
+             if (Date.now() < act.buffs.str) basePower *= 2;
+             if (Date.now() < act.buffs.od) basePower *= 3;
+
+             // Skill 2: Critical Hits (+1% Chance per level)
+             let lvlCrit = act.clickSkillLevels[1] || 0;
+             let critChance = (lvlCrit * 0.01); 
+             
+             // Check Artifact for Crit Bonus (+5%)
+             if (State.artifactsFound.includes('compass')) critChance += 0.05;
+
+             // Roll for Crit (3x Damage)
+             if (Math.random() < critChance) {
+                 basePower *= 3;
+                 // Visual Pop-up for Crit
+                 UI.spawnFloater(x, y-20, "CRIT!", "#f1c40f");
+             }
+                // --- FIX END ---
              if (act.clickUpgrade) basePower *= (1 + act.clickUpgrade);
              
              if (Date.now() < act.buffs.str) basePower *= 2;
@@ -115,9 +181,19 @@ export const GameLogic = {
         let mat = conf.materials[act.matIndex];
         
         let reward = mat.val;
-        let loopMult = Math.pow(10, act.loopCount);
+        let loopMult = Math.pow(100000000, act.loopCount);
+        let petGold = 1 + this.getPetBonus('gold');
+        reward *= petGold; // Apply pet bonus to gold
         act.gold += (reward * loopMult);
         act.depth++;
+
+        // 1. Calculate Chance (Base 0.1%)
+        let fabricChance = 0.001; 
+        
+        // 2. Add Artifact Bonus (Djinn Lamp)
+        if (State.artifactsFound.includes('djinn_lamp')) {
+             fabricChance += 0.01; // +1% Chance
+        }
         
         if(act.depth > act.maxDepth) act.maxDepth = act.depth;
         
@@ -131,8 +207,8 @@ export const GameLogic = {
         } 
         // 2. Check Standard Chance
         else if (act.depth > 200 && State.activeWorld !== 'christmas' && act.wasTouchedByPlayer) {
-             // 1 : 12000 Chance
-             if(Math.random() < (1 / 12000)) {
+             // 1 : 4000 Chance
+             if(Math.random() < (1 / 4000)) {
                  dropArtifact = true;
              }
         }
@@ -329,6 +405,8 @@ export const GameLogic = {
         act.prestigeCount++;
         
         act.gold = 0; act.depth = 1; act.currentHp = 1; act.pickLevel = 0;
+        // FIX: Reset Click Skills to 0
+        act.clickSkillLevels = [0, 0, 0];
         act.miners.forEach(m => {
             m.level = 0;
             m.skills = { dps: 0, cost: 0, synergy: 0 };
@@ -466,5 +544,16 @@ export const GameLogic = {
             UI.update();
             UI.updateExchangeRate();
         }
+        
+        // Inside trade function
+    let resultAmount = Math.floor(amount * rate);
+    
+    if(resultAmount < 1) {
+        alert("Betrag zu klein für den Wechselkurs!");
+        return;
+    }
+    
+    sellSource.gold -= amount;
+    buySource.gold += resultAmount;
     }
 };

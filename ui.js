@@ -650,6 +650,11 @@ openMobileMenu: function() {
         setText('depthDisplay', act.depth);
         setText('goldDisplayBig', LogicRef.formatNumber(act.gold));
         setText('dpsDisplay', LogicRef.formatNumber(LogicRef.calculateDPS()));
+        // FIX: Update Aetherium (Prestige) Display
+        setText('aetheriumDisplay', act.prestige);
+        
+        // Update the Multiplier Display (Each point is +25%)
+        setText('multDisplay', (act.prestige * 25));
         
         let hpPercent = (Math.max(0, act.currentHp) / act.maxHp) * 100;
         const hpBar = document.getElementById('hp-bar-fill');
