@@ -421,42 +421,48 @@
         <div class="close-btn" onclick="closePlayerCard()">×</div>
         
         <div class="mobile-player-layout">
-            
-            <div class="mobile-header-row">
-                <div class="mobile-stats-col">
-                    <input type="text" id="player-name-input" value="Spieler 1" maxlength="12" onchange="updateName()">
-                    <div id="player-stats-mobile">
-                        <div class="stat-row">Tiefe: <span id="stat-max-depth-mobile" style="color:#00d2d3">1</span></div>
-                        <div class="stat-row">Aether: <span id="stat-aetherium-mobile" style="color:#f1c40f">0</span></div>
-                        <div class="stat-row">Kills: <span id="stat-bosses-mobile">0</span></div>
-                    </div>
-                </div>
-                <div class="mobile-avatar-col">
-                    <canvas id="mobile-avatar-canvas" width="400" height="600"></canvas>
-                </div>
-            </div>
-
-            <div class="mobile-main-nav">
-                <button class="mob-nav-btn" onclick="setMobileView('stats')">STATS</button>
-                <button class="mob-nav-btn" onclick="setMobileView('artifacts')">ARTEFAKTE</button>
-                <button class="mob-nav-btn active" onclick="setMobileView('shop')" style="position: relative;">
-                    SHOP
-                <div id="mobile-fabric-badge" class="nav-badge">0 🧶</div>
-                </button>
-            </div>
-
-            <div id="mobile-shop-selector" class="mobile-shop-bar">
-                <label>Kategorie:</label>
-                <select id="shop-category-select" onchange="switchTab(this.value)">
-                    <option value="hat">Hüte 🧢</option>
-                    <option value="body">Körper 👕</option>
-                    <option value="legs">Beine 👖</option>
-                    <option value="wings">Flügel 🧚</option>
-                    <option value="glasses">Brillen 🕶️</option>
-                </select>
+    
+    <div class="mobile-header-row">
+        <div class="mobile-stats-col">
+            <input type="text" id="player-name-input" value="Spieler 1" maxlength="12" onchange="updateName()">
+            <div id="player-stats-mobile">
+                <div class="stat-row">Tiefe: <span id="stat-max-depth-mobile" style="color:#00d2d3">1</span></div>
+                <div class="stat-row">Aether: <span id="stat-aetherium-mobile" style="color:#f1c40f">0</span></div>
+                <div class="stat-row">Kills: <span id="stat-bosses-mobile">0</span></div>
             </div>
         </div>
-        <div class="modal-left desktop-only">
+        <div class="mobile-avatar-col">
+            <canvas id="mobile-avatar-canvas" width="100" height="120"></canvas>
+        </div>
+    </div>
+
+    <div class="mobile-main-nav">
+        <button class="mob-nav-btn" onclick="setMobileView('stats')">STATS</button>
+        <button class="mob-nav-btn" onclick="setMobileView('artifacts')">ARTEFAKTE</button>
+        <button class="mob-nav-btn active" onclick="setMobileView('shop')">SHOP</button>
+    </div>
+
+    <div id="mobile-shop-selector" class="mobile-shop-row">
+        
+        <div class="mobile-dropdown-area">
+            <span id="mobile-cat-label">Hüte 🧢</span>
+            <span style="font-size:10px;">▼</span>
+            
+            <select id="shop-category-select" onchange="UI.updateMobileCategory(this)">
+                <option value="hat">Hüte 🧢</option>
+                <option value="body">Körper 👕</option>
+                <option value="legs">Beine 👖</option>
+                <option value="wings">Flügel 🧚</option>
+                <option value="glasses">Brillen 🕶️</option>
+            </select>
+        </div>
+
+        <div class="mobile-fabric-box">
+            <span id="mob-fabric-count">0</span> 🧶
+        </div>
+    </div>
+
+        </div><div class="modal-left desktop-only">
             <div id="player-stats" class="desktop-only">
                 <div class="stat-row"><span>Max Tiefe:</span> <span id="stat-max-depth" style="color:#00d2d3">1</span></div>
                 <div class="stat-row"><span>Aetherium:</span> <span id="stat-aetherium" style="color:#f1c40f">0</span></div>

@@ -1061,6 +1061,55 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     gap: 3px;
     pointer-events: none; /* Klicks gehen durch auf den Shop-Button */
     }
+    /* --- MOBILE SHOP ROW (2-Spaltig) --- */
+
+.mobile-shop-row {
+    display: none; /* Wird per JS angezeigt */
+    width: 100%;
+    height: 50px; /* Etwas höher für bessere Touch-Fläche */
+    gap: 10px;    /* Abstand zwischen Dropdown und F-Box */
+    margin-bottom: 10px;
+}
+
+/* LINKS: Dropdown Area */
+.mobile-dropdown-area {
+    position: relative; /* Für das absolute Select */
+    flex: 1; /* Nimmt den ganzen freien Platz */
+    background: #222;
+    border: 2px solid #f1c40f;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    color: #fff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 11px; /* Etwas kleiner damit Text passt */
+    box-shadow: 0 4px 0 rgba(0,0,0,0.5); /* Button Look */
+}
+
+/* Das unsichtbare Select Element */
+#shop-category-select {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* RECHTS: Fabric Box */
+.mobile-fabric-box {
+    width: 80px; /* Feste Breite */
+    background: #1e1e1e;
+    border: 2px solid #3498db; /* Blau für Kontrast oder #f1c40f für Gold */
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 12px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+}
 }
 
 

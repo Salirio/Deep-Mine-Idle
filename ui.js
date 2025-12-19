@@ -357,17 +357,21 @@ openMobileMenu: function() {
         if(view === 'artifacts') btns[1].classList.add('active');
         if(view === 'shop') btns[2].classList.add('active');
 
-        // Dropdown Sichtbarkeit
-        const dropdown = document.getElementById('mobile-shop-selector');
+        // 2. Ansicht umschalten
+        const shopRow = document.getElementById('mobile-shop-selector');
         
         if (view === 'shop') {
-            dropdown.style.display = 'flex';
-            // Lade die gewählte Kategorie
+            shopRow.style.display = 'flex'; // WICHTIG: Flex, damit sie nebeneinander sind!
+            
+            // Fabric Update beim Öffnen
+            if(document.getElementById('mob-fabric-count')) {
+                document.getElementById('mob-fabric-count').innerText = State.fabric;
+            }
+
             const cat = document.getElementById('shop-category-select').value;
             this.switchTab(cat);
         } else {
-            dropdown.style.display = 'none';
-            // Direkt Stats oder Artefakte laden
+            shopRow.style.display = 'none';
             this.switchTab(view);
         }
     }, // <--- Wichtig: Komma, falls noch was danach kommt!
@@ -941,19 +945,18 @@ openMobileMenu: function() {
     },
 
     renderAvatarPreview: function() {
-        // 1. Desktop Canvas zeichnen
-        const c1 = document.getElementById('avatar-preview-canvas');
-        if(c1 && c1.offsetParent !== null) { // Nur zeichnen wenn sichtbar (Performance)
-             this.drawAvatar(c1.getContext('2d'), 400, 600);
-        }
+        // 1. Desktop Canvas zeichnen (wie bisher)
+        const c = document.getElementById('avatar-preview-canvas');
+        if(c) this.drawAvatar(c.getContext('2d'), 400, 600);
 
-        // 2. Mobile Canvas zeichnen (NEU)
-        const c2 = document.getElementById('mobile-avatar-canvas');
-        // Wir zeichnen auch hier, wenn das Element existiert
-        if(c2 && window.innerWidth <= 900) { 
-             this.drawAvatar(c2.getContext('2d'), 400, 600);
+        // 2. NEU: Mobile Canvas zeichnen
+        const m = document.getElementById('mobile-avatar-canvas');
+        if(m) {
+            // Wir zeichnen in kleinerer Auflösung (passend zur CSS Box)
+            this.drawAvatar(m.getContext('2d'), 100, 120);
         }
     },
+    
     renderAvatarIcon: function() {
         const c = document.getElementById('avatar-canvas-icon');
         if(c) this.drawAvatar(c.getContext('2d'), 128, 128);
