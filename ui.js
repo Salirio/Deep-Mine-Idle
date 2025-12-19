@@ -100,7 +100,7 @@ export const UI = {
     openPrestige: function() { 
         document.getElementById('prestige-modal').style.display = 'flex';
         let act = State[State.activeWorld];
-        document.getElementById('prestige-reward-amount').innerText = Math.floor(act.depth / 20);
+        document.getElementById('prestige-reward-amount').innerText = Math.floor(act.depth / 15);
         document.getElementById('prestige-req').innerText = 50 + (act.prestigeCount * 20);
         
         const floor = document.getElementById('dance-floor');
@@ -956,7 +956,7 @@ openMobileMenu: function() {
             this.drawAvatar(m.getContext('2d'), 100, 120);
         }
     },
-    
+
     renderAvatarIcon: function() {
         const c = document.getElementById('avatar-canvas-icon');
         if(c) this.drawAvatar(c.getContext('2d'), 128, 128);

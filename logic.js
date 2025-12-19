@@ -407,7 +407,7 @@ export const GameLogic = {
         let reqDepth = 50 + (act.prestigeCount * 20);
         if (act.depth < reqDepth) return;
         
-        let reward = Math.floor(act.depth / 20);
+        let reward = Math.floor(act.depth / 15);
         act.prestige += reward; 
         act.prestigeCount++;
         
