@@ -188,11 +188,18 @@ export const GameLogic = {
         act.depth++;
 
         // 1. Calculate Chance (Base 0.1%)
-        let fabricChance = 0.001; 
+        let fabricChance = 0.01; // 1%
         
         // 2. Add Artifact Bonus (Djinn Lamp)
         if (State.artifactsFound.includes('djinn_lamp')) {
-             fabricChance += 0.01; // +1% Chance
+             fabricChance += 0.05; // 5%
+        }
+
+        // --- FIX: STOFF AUCH WIRKLICH GEBEN ---
+        if (Math.random() < fabricChance) {
+            State.fabric++;
+            // Visuelles Feedback, damit man es sieht!
+            UI.spawnFloater(window.innerWidth/2, window.innerHeight/2, "+1 STOFF 🧶", "#fff");
         }
         
         if(act.depth > act.maxDepth) act.maxDepth = act.depth;

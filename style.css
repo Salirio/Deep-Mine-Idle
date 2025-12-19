@@ -721,8 +721,19 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
 
     #fabric-display-container {
         display: flex !important;
-        top: 65px !important; /* Position it right below the avatar */
-        left: 15px !important; 
+        /* Position angepasst: Gleiche Linie wie Avatar (10px) */
+        left: 10px !important; 
+        /* Etwas näher an den Avatar rutschen (60px statt 65px) */
+        top: 60px !important; 
+        
+        /* Die Größe exakt wie der Avatar (45x45) */
+        width: 45px !important; 
+        height: 45px !important;
+        
+        /* Damit der Inhalt gut zentriert ist */
+        justify-content: center !important;
+        align-items: center !important;
+        
         z-index: 500 !important;
     }
     
@@ -1027,6 +1038,28 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         height: 25px;
         display: flex; align-items: center; justify-content: center;
         font-size: 20px;
+    }
+    /* Der kleine Stoff-Zähler im Shop Button */
+.nav-badge {
+    position: absolute;
+    right: 5px;           /* 5px vom rechten Rand */
+    top: 50%;             /* Vertikal mittig */
+    transform: translateY(-50%); /* Exakte Mitte erzwingen */
+    
+    background: rgba(0, 0, 0, 0.5); /* Halbtransparenter Hintergrund */
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 3px 6px;
+    
+    font-size: 9px;       /* Schön klein */
+    color: #fff;
+    font-weight: normal;  /* Nicht fett, damit es lesbar bleibt */
+    font-family: sans-serif; /* Bessere Lesbarkeit für Zahlen */
+    
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none; /* Klicks gehen durch auf den Shop-Button */
     }
 }
 
