@@ -326,12 +326,52 @@ openMobileMenu: function() {
     openPlayerCard: function() { 
         document.getElementById('player-modal').style.display = 'flex';
         let act = State[State.activeWorld];
-        document.getElementById('stat-max-depth').innerText = act.maxDepth;
-        document.getElementById('stat-aetherium').innerText = act.prestige;
-        document.getElementById('stat-bosses').innerText = act.bossKills;
+        
+        // Desktop Update (wie vorher)
+        if(document.getElementById('stat-max-depth')) document.getElementById('stat-max-depth').innerText = act.maxDepth;
+        if(document.getElementById('stat-aetherium')) document.getElementById('stat-aetherium').innerText = act.prestige;
+        if(document.getElementById('stat-bosses')) document.getElementById('stat-bosses').innerText = act.bossKills;
+
+        // --- NEU: Mobile Update ---
+        if(document.getElementById('stat-max-depth-mobile')) {
+            document.getElementById('stat-max-depth-mobile').innerText = act.maxDepth;
+            document.getElementById('stat-aetherium-mobile').innerText = act.prestige;
+            document.getElementById('stat-bosses-mobile').innerText = act.bossKills;
+            
+            // Auf Handy direkt den Shop öffnen
+            if(window.innerWidth <= 900) {
+                this.setMobileView('shop');
+            }
+        }
+
         this.renderAvatarPreview();
         this.renderShop();
     },
+
+    setMobileView: function(view) {
+        // Buttons aktualisieren
+        const btns = document.querySelectorAll('.mob-nav-btn');
+        btns.forEach(b => b.classList.remove('active'));
+        
+        if(view === 'stats') btns[0].classList.add('active');
+        if(view === 'artifacts') btns[1].classList.add('active');
+        if(view === 'shop') btns[2].classList.add('active');
+
+        // Dropdown Sichtbarkeit
+        const dropdown = document.getElementById('mobile-shop-selector');
+        
+        if (view === 'shop') {
+            dropdown.style.display = 'flex';
+            // Lade die gewählte Kategorie
+            const cat = document.getElementById('shop-category-select').value;
+            this.switchTab(cat);
+        } else {
+            dropdown.style.display = 'none';
+            // Direkt Stats oder Artefakte laden
+            this.switchTab(view);
+        }
+    }, // <--- Wichtig: Komma, falls noch was danach kommt!
+
     closePlayerCard: () => document.getElementById('player-modal').style.display = 'none',
 
     updateName: function() { Avatar.name = document.getElementById('player-name-input').value; },
@@ -901,8 +941,18 @@ openMobileMenu: function() {
     },
 
     renderAvatarPreview: function() {
-        const c = document.getElementById('avatar-preview-canvas');
-        if(c) this.drawAvatar(c.getContext('2d'), 400, 600);
+        // 1. Desktop Canvas zeichnen
+        const c1 = document.getElementById('avatar-preview-canvas');
+        if(c1 && c1.offsetParent !== null) { // Nur zeichnen wenn sichtbar (Performance)
+             this.drawAvatar(c1.getContext('2d'), 400, 600);
+        }
+
+        // 2. Mobile Canvas zeichnen (NEU)
+        const c2 = document.getElementById('mobile-avatar-canvas');
+        // Wir zeichnen auch hier, wenn das Element existiert
+        if(c2 && window.innerWidth <= 900) { 
+             this.drawAvatar(c2.getContext('2d'), 400, 600);
+        }
     },
     renderAvatarIcon: function() {
         const c = document.getElementById('avatar-canvas-icon');
@@ -1085,6 +1135,8 @@ openMobileMenu: function() {
         drawRect(cx + 4.5*scale, cy, 2.5*scale, 2.5*scale, 0.5*scale, "#ffccaa");
     }
 };
+
+window.setMobileView = (v) => UI.setMobileView(v);
 
 
 

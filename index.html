@@ -419,27 +419,60 @@
 <div id="player-modal" class="modal-overlay" onclick="if(event.target===this) closePlayerCard()">
     <div class="modal-content">
         <div class="close-btn" onclick="closePlayerCard()">×</div>
-        <div class="modal-left">
-            <input type="text" id="player-name-input" value="Spieler 1" maxlength="12" onchange="updateName()">
-            <div id="player-stats">
+        
+        <div class="mobile-player-layout">
+            
+            <div class="mobile-header-row">
+                <div class="mobile-stats-col">
+                    <input type="text" id="player-name-input" value="Spieler 1" maxlength="12" onchange="updateName()">
+                    <div id="player-stats-mobile">
+                        <div class="stat-row">Tiefe: <span id="stat-max-depth-mobile" style="color:#00d2d3">1</span></div>
+                        <div class="stat-row">Aether: <span id="stat-aetherium-mobile" style="color:#f1c40f">0</span></div>
+                        <div class="stat-row">Kills: <span id="stat-bosses-mobile">0</span></div>
+                    </div>
+                </div>
+                <div class="mobile-avatar-col">
+                    <canvas id="mobile-avatar-canvas" width="400" height="600"></canvas>
+                </div>
+            </div>
+
+            <div class="mobile-main-nav">
+                <button class="mob-nav-btn" onclick="setMobileView('stats')">STATS</button>
+                <button class="mob-nav-btn" onclick="setMobileView('artifacts')">ARTEFAKTE</button>
+                <button class="mob-nav-btn active" onclick="setMobileView('shop')">SHOP</button>
+            </div>
+
+            <div id="mobile-shop-selector" class="mobile-shop-bar">
+                <label>Kategorie:</label>
+                <select id="shop-category-select" onchange="switchTab(this.value)">
+                    <option value="hat">Hüte 🧢</option>
+                    <option value="body">Körper 👕</option>
+                    <option value="legs">Beine 👖</option>
+                    <option value="wings">Flügel 🧚</option>
+                    <option value="glasses">Brillen 🕶️</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-left desktop-only">
+            <div id="player-stats" class="desktop-only">
                 <div class="stat-row"><span>Max Tiefe:</span> <span id="stat-max-depth" style="color:#00d2d3">1</span></div>
                 <div class="stat-row"><span>Aetherium:</span> <span id="stat-aetherium" style="color:#f1c40f">0</span></div>
                 <div class="stat-row"><span>Boss Kills:</span> <span id="stat-bosses">0</span></div>
             </div>
-            <!-- CHANGE: Increased resolution from 200x300 to 400x600 for HD look -->
             <canvas id="avatar-preview-canvas" width="400" height="600"></canvas>
         </div>
+
         <div class="modal-right">
-            <div class="shop-tabs">
-                <!-- NEW: Rearranged Tabs & Added Artifacts/Stats (Cleaned up text) -->
+            <div class="shop-tabs desktop-only">
                 <div class="shop-tab active" onclick="switchTab('hat')">Hüte</div>
                 <div class="shop-tab" onclick="switchTab('body')">Body</div>
                 <div class="shop-tab" onclick="switchTab('legs')">Beine</div>
                 <div class="shop-tab" onclick="switchTab('wings')">Flügel</div>
+                <div class="shop-tab" onclick="switchTab('glasses')">Brille</div>
                 <div class="shop-tab" onclick="switchTab('artifacts')" style="color:#f1c40f">Artefakte</div>
                 <div class="shop-tab" onclick="switchTab('stats')" style="color:#3498db">Stats</div>
             </div>
-            <!-- Grid container is reused for Artifacts, Stats will clear styles if needed -->
+            
             <div class="shop-grid" id="shop-grid"></div>
         </div>
     </div>

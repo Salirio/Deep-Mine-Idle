@@ -817,6 +817,13 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         font-size: 20px !important;
     }
 
+    /* Style für den neuen Mobile Avatar Canvas */
+#mobile-avatar-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Verhindert Verzerrung */
+    }
+
     /* Name & Stats Area */
     #player-name-input { width: 120px !important; font-size: 14px !important; text-align: left !important; }
     #player-stats { font-size: 10px !important; text-align: left !important; }
@@ -868,6 +875,159 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
 /* Specificity Fix: Target ID + Class to override the default ID style */
 #mobile-bottom-nav.nav-hidden {
     display: none !important;
+}
+
+/* --- MOBILE PLAYER CARD REDESIGN --- */
+
+/* Standardmäßig Mobile Elemente verstecken */
+.mobile-player-layout { display: none; }
+.desktop-only { display: flex; }
+
+@media (max-width: 900px) {
+    /* Desktop Sachen verstecken */
+    .desktop-only { display: none !important; }
+    
+    /* Mobile Layout aktivieren */
+    .mobile-player-layout { display: flex; flex-direction: column; width: 100%; margin-bottom: 10px; }
+
+    /* Player Modal Container Fix */
+    #player-modal .modal-content {
+        width: 95% !important;
+        height: 85vh !important;
+        padding: 15px !important;
+        overflow: hidden; /* Scrollen nur im Grid */
+    }
+
+    /* 1. Header: Links Stats, Rechts Avatar */
+    .mobile-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 10px;
+    }
+
+    .mobile-stats-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: left;
+    }
+
+    #player-name-input {
+        text-align: left !important;
+        width: 100% !important;
+        margin-bottom: 5px !important;
+        font-size: 16px !important;
+        border-bottom: 1px solid #555;
+    }
+
+    #player-stats-mobile { font-size: 11px; color: #aaa; line-height: 1.6; }
+
+    .mobile-avatar-col {
+        width: 100px;
+        height: 120px;
+        background: #111;
+        border: 2px solid #f1c40f; /* Gold Border wie Skizze */
+        border-radius: 8px;
+        margin-left: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Wir nutzen das existierende Canvas, zwingen es aber per CSS in die Box */
+    #avatar-preview-canvas {
+        display: block !important; /* Wieder anzeigen für Mobile, aber anders positioniert */
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* 2. Navigation: 3 Buttons */
+    .mobile-main-nav {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    .mob-nav-btn {
+        flex: 1;
+        background: #222;
+        border: 2px solid #444;
+        color: #aaa;
+        padding: 10px 0;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-family: 'Press Start 2P', cursive; /* Optional, falls zu breit, nimm sans-serif */
+        text-transform: uppercase;
+    }
+    
+    /* Aktiver Button Style (Gelb/Gold) */
+    .mob-nav-btn.active {
+        background: #f1c40f;
+        color: #000;
+        border-color: #fff;
+        box-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+    }
+
+    /* 3. Shop Dropdown Bar */
+    .mobile-shop-bar {
+        display: flex; /* Wird per JS auf 'none' gesetzt wenn nicht Shop */
+        align-items: center;
+        background: #2c3e50;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #34495e;
+        margin-bottom: 10px;
+    }
+    
+    .mobile-shop-bar label {
+        font-size: 11px; color: #fff; margin-right: 10px;
+    }
+
+    #shop-category-select {
+        flex: 1;
+        background: #111;
+        color: #f1c40f;
+        border: 1px solid #f1c40f;
+        padding: 5px;
+        border-radius: 4px;
+        font-weight: bold;
+        outline: none;
+    }
+
+    /* Grid Anpassung */
+    .modal-right {
+        padding: 0 !important;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .shop-grid {
+        overflow-y: auto;
+        padding-bottom: 50px; /* Platz unten */
+    }
+    
+    /* Close Button reparieren */
+    .close-btn {
+        z-index: 9999;
+        top: 5px !important;
+        right: 10px !important;
+        background: rgba(0,0,0,0.5);
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+    }
 }
 
 
