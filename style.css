@@ -1110,6 +1110,14 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     font-size: 12px;
     box-shadow: 0 4px 0 rgba(0,0,0,0.5);
 }
+/* --- FIX: SCROLL PADDING UNTEN --- */
+/* Damit der letzte Bot nicht von der Navigationsleiste verdeckt wird */
+#miner-list, 
+#click-list,     /* Auch für die Skills-Liste wichtig! */
+#left-col,       /* Für die Dig-Ansicht (Tool Shop Buttons) */
+.shop-grid {     /* Für den Item-Shop */
+    padding-bottom: 85px !important; 
+}
 }
 
 
