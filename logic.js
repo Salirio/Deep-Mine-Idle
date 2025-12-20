@@ -434,6 +434,9 @@ export const GameLogic = {
 
     saveGame: function() {
         if(!State.username) return; 
+
+        State.lastSaveTime = Date.now();
+
         const saveObj = { state: State, avatar: Avatar };
         try {
             const jsonString = JSON.stringify(saveObj);
@@ -448,18 +451,72 @@ export const GameLogic = {
         if(raw) {
             try {
                 let jsonString = raw;
+                // Fix for double-encoding issues
                 if (!raw.trim().startsWith('{')) {
                     try { jsonString = decodeURIComponent(escape(atob(raw))); } catch (e) { jsonString = raw; }
                 }
                 const data = JSON.parse(jsonString);
-                if(data.state) Object.assign(State, data.state);
-                if(data.avatar) Object.assign(Avatar, data.avatar);
                 
-                // Resume BGM if loaded
+                // --- 1. SAFE MERGE (Der wichtige Fix!) ---
+                
+                // A) Wir retten deine NEUEN Defaults, bevor das Savegame sie überschreibt
+                const defaultSettings = { ...State.settings };
+                const defaultStats = { ...State.stats };
+
+                if(data.state) {
+                    // B) Jetzt laden wir brutal drüber (State ist nun "alt")
+                    Object.assign(State, data.state);
+                    
+                    // C) Jetzt reparieren wir Settings & Stats (Basis: Neu, Overlay: Alt)
+                    if (data.state.settings) {
+                        State.settings = { ...defaultSettings, ...data.state.settings };
+                    }
+                    if (data.state.stats) {
+                        State.stats = { ...defaultStats, ...data.state.stats };
+                    }
+                }
+                if(data.avatar) Object.assign(Avatar, data.avatar);
+
+                // --- 2. MIGRATION FIX (Fehlende Miner ergänzen) ---
+                const activeWorldConf = Worlds[State.activeWorld];
+                if (activeWorldConf && State[State.activeWorld].miners.length < activeWorldConf.miners.length) {
+                    console.log("Migrating Save: Adding missing miners...");
+                    for (let i = State[State.activeWorld].miners.length; i < activeWorldConf.miners.length; i++) {
+                        State[State.activeWorld].miners.push({ level: 0, skills: { dps: 0, cost: 0, synergy: 0 } });
+                        if(State[State.activeWorld].minerUpgrades) State[State.activeWorld].minerUpgrades.push(0);
+                    }
+                }
+                // Dasselbe für Klick-Skills
+                if (activeWorldConf && State[State.activeWorld].clickSkillLevels.length < activeWorldConf.clickSkills.length) {
+                    for (let i = State[State.activeWorld].clickSkillLevels.length; i < activeWorldConf.clickSkills.length; i++) {
+                        State[State.activeWorld].clickSkillLevels.push(0);
+                    }
+                }
+                
+                // --- 3. OFFLINE PROGRESSION ---
+                if (State.lastSaveTime) {
+                    const now = Date.now();
+                    const secondsOffline = Math.floor((now - State.lastSaveTime) / 1000);
+                    
+                    if (secondsOffline > 60) {
+                        const dps = this.calculateDPS();
+                        const cappedSeconds = Math.min(secondsOffline, 86400); // Max 24h
+                        const offlineGold = dps * cappedSeconds;
+                        
+                        if (offlineGold > 0) {
+                            State[State.activeWorld].gold += offlineGold;
+                            setTimeout(() => {
+                                alert(`🏠 WILLKOMMEN ZURÜCK!\n\nDu warst ${secondsOffline} Sekunden weg.\nDeine Miner haben ${this.formatNumber(offlineGold)} Gold gesammelt!`);
+                            }, 500);
+                        }
+                    }
+                }
+
+                // 4. Resume Audio
                 setTimeout(() => AudioController.playBGM(State.activeWorld), 1000);
 
                 return true;
-            } catch(e) { return false; }
+            } catch(e) { console.error("Load Error", e); return false; }
         }
         return false;
     },

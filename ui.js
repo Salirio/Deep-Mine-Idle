@@ -342,6 +342,7 @@ openMobileMenu: function() {
             if(window.innerWidth <= 900) {
                 this.setMobileView('shop');
             }
+            
         }
 
         this.renderAvatarPreview();
@@ -361,20 +362,45 @@ openMobileMenu: function() {
         const shopRow = document.getElementById('mobile-shop-selector');
         
         if (view === 'shop') {
-            shopRow.style.display = 'flex'; // WICHTIG: Flex, damit sie nebeneinander sind!
+            shopRow.style.display = 'flex'; 
             
-            // Fabric Update beim Öffnen
             if(document.getElementById('mob-fabric-count')) {
                 document.getElementById('mob-fabric-count').innerText = State.fabric;
             }
 
-            const cat = document.getElementById('shop-category-select').value;
+            // --- FIX START ---
+            const selectEl = document.getElementById('shop-category-select');
+            const cat = selectEl.value;
+            
+            // Label sofort beim Öffnen korrigieren!
+            const label = document.getElementById('mobile-cat-label');
+            if(label && selectEl) {
+                label.innerText = selectEl.options[selectEl.selectedIndex].text;
+            }
+            // --- FIX END ---
+
             this.switchTab(cat);
         } else {
             shopRow.style.display = 'none';
             this.switchTab(view);
         }
-    }, // <--- Wichtig: Komma, falls noch was danach kommt!
+    },
+
+    // --- NEU: Diese Funktion hat gefehlt! ---
+    updateMobileCategory: function(el) {
+        // 1. Den Wert holen (z.B. 'body')
+        const val = el.value;
+        
+        // 2. Den angezeigten Text holen (z.B. 'Körper 👕')
+        const text = el.options[el.selectedIndex].text;
+        
+        // 3. Das Label oben aktualisieren (damit da nicht immer "Hüte" steht)
+        const label = document.getElementById('mobile-cat-label');
+        if(label) label.innerText = text;
+        
+        // 4. Den Shop Tab wechseln und sofort neu rendern
+        this.switchTab(val);
+    },
 
     closePlayerCard: () => document.getElementById('player-modal').style.display = 'none',
 

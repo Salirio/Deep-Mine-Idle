@@ -200,15 +200,20 @@ function renderLoop() {
 function logicLoop() {
     // Check Bubble
     if (Date.now() > State.nextBubbleTime) {
-        // Simple logic for bubble spawn check if needed
-        // State.nextBubbleTime = ...
+        // 1. Spawn the visual bubble and tell it what to do when clicked
+        UI.spawnBubbleElement(() => GameLogic.clickBubble());
+
+        // 2. Set the timer for the next one (currently set to 60 seconds)
+        // You can change 60000 to (Math.random() * 60000 + 30000) for random timing!
+        State.nextBubbleTime = Date.now() + (Math.random() * 600000 + 300000); 
     }
+    // --- BUBBLE FIX END ---
 
     const dps = GameLogic.calculateDPS();
     if(dps > 0) {
         GameLogic.hitBlock(0, 0, dps/10, true);
     }
-
+    
 }
 /* --- FINALER, KONSOLIDIERTER MOBILE SWITCHER (main.js) --- */
 
