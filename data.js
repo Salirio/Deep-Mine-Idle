@@ -64,7 +64,14 @@ export const Worlds = {
             { name: "Plasma Pick", power: 2000, cost: 85000, color: "#9b59b6" },
             { name: "Antimaterie", power: 10000, cost: 800000, color: "#2c3e50" },
             { name: "Schwarzes Loch", power: 50000, cost: 9000000, color: "#000" },
-            { name: "Gottes Hand", power: 500000, cost: 450000000, color: "#ffffff" }
+            { name: "Gottes Hand", power: 500000, cost: 450000000, color: "#ffffff" },
+            { name: "Cyber Klaue", power: 2500000, cost: 3000000000, color: "#00d2d3" },     // 3 Mrd
+            { name: "Quanten Bohrer", power: 15000000, cost: 25000000000, color: "#8e44ad" }, // 25 Mrd
+            { name: "Nano Zersetzer", power: 85000000, cost: 200000000000, color: "#2ecc71" }, // 200 Mrd
+            { name: "Sternen Schmiede", power: 500000000, cost: 1500000000000, color: "#f1c40f" }, // 1.5 Bio
+            { name: "Event Horizon", power: 4000000000, cost: 15000000000000, color: "#000000" }, // 15 Bio
+            { name: "Der Glitch", power: 35000000000, cost: 250000000000000, color: "#00ff00" }, // 250 Bio
+            { name: "Big Bang", power: 500000000000, cost: 5000000000000, color: "#ffffff" }  // 5 Brd
         ],
         clickSkills: [
             { id: 'base', name: "Stein Schleifen", desc: "+10% Pick Power / Lvl", baseCost: 75, type: 'flat', val: 1, icon: '✊' },
@@ -86,7 +93,10 @@ export const Worlds = {
             { name: "Die Singularität", baseCost: 900000000, basePower: 10000000, color: "#ffffff" },
             { name: "Chrono Brecher", baseCost: 45000000000, basePower: 80000000, color: "#00d2d3" },
             { name: "Dimensions Fresser", baseCost: 900000000000, basePower: 500000000, color: "#8e44ad" },
-            { name: "Der Architekt", baseCost: 45000000000000, basePower: 5000000000, color: "#f1c40f" }
+            { name: "Der Architekt", baseCost: 45000000000000, basePower: 5000000000, color: "#f1c40f" },
+            { name: "Antimaterie Bohrer", baseCost: 250000000000000, basePower: 35000000000, color: "#2c3e50" }, // 250 Bio
+            { name: "Realitäts Anker", baseCost: 1500000000000000, basePower: 200000000000, color: "#e74c3c" }, // 1.5 Brd
+            { name: "Der Schöpfer", baseCost: 10000000000000000, basePower: 1500000000000, color: "#ffffff" }  // 10 Brd
         ]
     },
     forest: {
@@ -121,7 +131,13 @@ export const Worlds = {
             { name: "Plasma Beil", power: 2000, cost: 100000, color: "#3498db" },
             { name: "Kristall Axt", power: 10000, cost: 1000000, color: "#00d2d3" },
             { name: "Leeren Spalter", power: 50000, cost: 10000000, color: "#000" },
-            { name: "Gottes Spalter", power: 500000, cost: 500000000, color: "#ffffff" }
+            { name: "Gottes Spalter", power: 500000, cost: 500000000, color: "#ffffff" },
+            { name: "Terra Former", power: 3000000, cost: 4000000000, color: "#27ae60" },
+            { name: "Gaia's Wurzel", power: 20000000, cost: 35000000000, color: "#d35400" },
+            { name: "Bio Reaktor", power: 150000000, cost: 400000000000, color: "#2ecc71" },
+            { name: "Planeten Spalter", power: 1000000000, cost: 5000000000000, color: "#8e44ad" }
+
+
         ],
         clickSkills: [
             { id: 'base', name: "Axt Schärfen", desc: "+10% Pick Power / Lvl", baseCost: 100, type: 'flat', val: 1, icon: '🪨' },
@@ -143,7 +159,10 @@ export const Worlds = {
             { name: "Der Kahlschlag", baseCost: 1000000000, basePower: 10000000, color: "#000000" },
             { name: "Wurzel Titan", baseCost: 50000000000, basePower: 80000000, color: "#2ecc71" },
             { name: "Gaia's Zorn", baseCost: 1000000000000, basePower: 500000000, color: "#d35400" },
-            { name: "Der Holzwurm", baseCost: 50000000000000, basePower: 5000000000, color: "#e74c3c" }
+            { name: "Der Holzwurm", baseCost: 50000000000000, basePower: 5000000000, color: "#e74c3c" },
+            { name: "Biosphären Former", baseCost: 300000000000000, basePower: 40000000000, color: "#2ecc71" }, // 300 Bio
+            { name: "Sternen Blume", baseCost: 1800000000000000, basePower: 250000000000, color: "#f1c40f" }, // 1.8 Brd
+            { name: "Urknall Säger", baseCost: 12000000000000000, basePower: 2000000000000, color: "#8e44ad" } // 12 Brd
         ]
     },
     desert: {
@@ -178,7 +197,15 @@ export const Worlds = {
             { name: "Rubin Schaufel", power: 2000, cost: 100000, color: "#e74c3c" },
             { name: "Obsidian Schaufel", power: 10000, cost: 1000000, color: "#2c3e50" },
             { name: "Anubis Zepter", power: 50000, cost: 10000000, color: "#8e44ad" },
-            { name: "Horus Auge", power: 500000, cost: 500000000, color: "#f1c40f" }
+            { name: "Horus Auge", power: 500000, cost: 500000000, color: "#f1c40f" },
+            { name: "Skorpion Stachel", power: 2500000, cost: 3000000000, color: "#d35400" }, // 3 Mrd
+            { name: "Glasbrecher", power: 15000000, cost: 25000000000, color: "#81ecec" },    // 25 Mrd (Hitze macht Sand zu Glas)
+            { name: "Sonnen Plasma", power: 85000000, cost: 200000000000, color: "#f39c12" }, // 200 Mrd
+            { name: "Zeit Phantom", power: 500000000, cost: 1500000000000, color: "#2c3e50" }, // 1.5 Bio (Sands of Time theme)
+            { name: "Seths Zerstörer", power: 400000000, cost: 1555555555555, color: "#c73e2b" }, // 1.5 Bio
+            { name: "Dimension Sand", power: 3567894321, cost: 267894321, color: "#9b69b6" }, // 267 Bio
+            { name: "Die Unendlichkeit", power: 4987654321, cost: 4987654321, color: "#ffffff" } // 4.9 Brd
+
         ],
         clickSkills: [
             { id: 'base', name: "Sand Handschuh", desc: "+10% Pick Power / Lvl", baseCost: 100, type: 'flat', val: 1, icon: '🧤' },
@@ -200,7 +227,10 @@ export const Worlds = {
             { name: "Sonnen Gott", baseCost: 1000000000, basePower: 10000000, color: "#ffffff" },
             { name: "Anubis Avatar", baseCost: 50000000000, basePower: 80000000, color: "#2c3e50" },
             { name: "Ra's Streitwagen", baseCost: 1000000000000, basePower: 500000000, color: "#f1c40f" },
-            { name: "Ewige Sanduhr", baseCost: 50000000000000, basePower: 5000000000, color: "#e74c3c" }
+            { name: "Ewige Sanduhr", baseCost: 50000000000000, basePower: 5000000000, color: "#e74c3c" },
+            { name: "Zeit Paradoxon", baseCost: 300000000000000, basePower: 40000000000, color: "#3498db" }, // 300 Bio
+            { name: "Sandsturm Galaxie", baseCost: 1800000000000000, basePower: 250000000000, color: "#e67e22" }, // 1.8 Brd
+            { name: "Der Anfang", baseCost: 1200000000000000, basePower: 255555555555, color: "#ffffff" } // 12 Brd
         ]
     },
     ice: {
@@ -235,7 +265,11 @@ export const Worlds = {
             { name: "Laser Strahl", power: 2000, cost: 100000, color: "#fd79a8" },
             { name: "Molekular Trenner", power: 10000, cost: 1000000, color: "#00cec9" },
             { name: "Schwerkraft Hammer", power: 50000, cost: 10000000, color: "#6c5ce7" },
-            { name: "Supernova", power: 500000, cost: 500000000, color: "#fab1a0" }
+            { name: "Supernova", power: 500000, cost: 500000000, color: "#fab1a0" },
+            { name: "Kelvin Null", power: 3000000, cost: 4000000000, color: "#74b9ff" },
+            { name: "Kryo Kanone", power: 20000000, cost: 35000000000, color: "#0984e3" },
+            { name: "Entropy Klinge", power: 150000000, cost: 400000000000, color: "#636e72" },
+            { name: "Universum Tod", power: 1000000000, cost: 500000000000, color: "#ffffff" }
         ],
         clickSkills: [
             { id: 'base', name: "Eis Spikes", desc: "+10% Pick Power / Lvl", baseCost: 100, type: 'flat', val: 1, icon: '🧊' },
@@ -257,7 +291,10 @@ export const Worlds = {
             { name: "Der Eisberg", baseCost: 1000000000, basePower: 10000000, color: "#dfe6e9" },
             { name: "Nordlicht Weber", baseCost: 50000000000, basePower: 80000000, color: "#fd79a8" },
             { name: "Kelvin Null", baseCost: 1000000000000, basePower: 500000000, color: "#2c3e50" },
-            { name: "Frost Gott", baseCost: 50000000000000, basePower: 5000000000, color: "#74b9ff" }
+            { name: "Frost Gott", baseCost: 50000000000000, basePower: 5000000000, color: "#74b9ff" },
+            { name: "Sub-Zero Nova", baseCost: 350000000000000, basePower: 45000000000, color: "#81ecec" }, // 350 Bio
+            { name: "Dunkle Kälte", baseCost: 2000000000000000, basePower: 300000000000, color: "#000000" }, // 2 Brd
+            { name: "Wärmetod", baseCost: 150000000000000, basePower: 255555555555, color: "#636e72" } // 1.5 Brd
         ]
     },
     christmas: {
