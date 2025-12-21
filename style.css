@@ -1216,6 +1216,25 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     }
     .gold-icon-big { font-size: 20px !important; }
     .gold-text-big { font-size: 18px !important; }
+
+    /* 1. Gold Anzeige höher und fetter machen */
+    .big-gold-display {
+    padding: 15px 0 !important;   /* Mehr Innenabstand oben/unten = mehr Höhe */
+    min-height: 60px !important;  /* Erzwingt eine Mindesthöhe */
+    margin-bottom: 10px !important; /* Etwas Platz zum Block */
+    width: 96% !important;        /* Volle Breite behalten */
+    margin-left: auto !important;
+    margin-right: auto !important;
+    }
+
+    /* Optional: Text auch etwas größer, damit er den Platz füllt */
+    .gold-text-big {
+    font-size: 24px !important; 
+    }
+
+    .boss-stat {
+    display: none !important;
+}
 }
 
 
