@@ -1041,7 +1041,7 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         font-size: 20px;
     }
     /* Der kleine Stoff-Zähler im Shop Button */
-     nav-badge {
+    .nav-badge {
     position: absolute;
     right: 5px;           /* 5px vom rechten Rand */
     top: 50%;             /* Vertikal mittig */
