@@ -1178,6 +1178,55 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     .gold-icon-big { font-size: 20px !important; }
     .gold-text-big { font-size: 18px !important; }
 }
+#game-wrapper {
+        width: 96% !important;        /* Exakt so breit wie der Shop darunter */
+        height: auto !important;      /* Höhe automatisch... */
+        aspect-ratio: 1 / 1 !important; /* ...aber immer quadratisch bleiben! */
+        margin: 10px auto !important; /* Etwas Luft nach oben/unten */
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important; /* Fetter Schatten */
+    }
+
+    /* Damit das Bild im Block scharf bleibt */
+    #gameCanvas {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 8px !important; /* Ecken leicht abrunden passend zum UI */
+    }
+    
+    /* 2. Tool Shop Container (zur Sicherheit nochmal definiert) */
+    #tool-shop {
+        width: 96% !important;
+        margin: 0 auto 20px auto !important;
+        gap: 8px !important; /* Etwas mehr Luft zwischen den Buttons */
+    }
+
+    /* 3. Der 3D Button Look (Fett & Klickbar) */
+    /* Dies gilt für ALLE Buttons im Shop (auch "MAX") */
+    .tool-btn, #btn-pick {
+        border-radius: 8px !important;
+        border: none !important;
+        
+        /* Der 3D-Effekt: Dicker unterer Rand */
+        border-bottom: 6px solid rgba(0,0,0,0.4) !important; 
+        
+        /* Verschiebung, damit Text mittig wirkt trotz dickem Rand */
+        padding-top: 4px !important; 
+        padding-bottom: 0px !important; 
+        
+        transition: all 0.05s !important;
+        position: relative !important;
+        top: 0px !important;
+    }
+
+    /* Wenn man draufdrückt: Button geht runter, Rand verschwindet */
+    .tool-btn:active, #btn-pick:active {
+        border-bottom-width: 0px !important; /* Rand weg */
+        border-top: 6px solid transparent !important; /* Platzhalter damit er nicht springt */
+        top: 6px !important; /* Button bewegt sich physisch nach unten */
+        transform: scale(0.98) !important; /* Leichtes Schrumpfen für Feedback */
+    }
+}
+
 /* --- NEUER 3D BUTTON STYLE --- */
 .tool-btn, #btn-pick {
     position: relative;
@@ -1207,7 +1256,6 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
 #btn-pot-min { background: #00d2d3; border-bottom-color: #00a8ff !important; }
 #btn-pot-od { background: #e67e22; border-bottom-color: #d35400 !important; }
 
-}
 
 
 
