@@ -1235,6 +1235,15 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     .boss-stat {
     display: none !important;
 }
+/* 1. Abstand UNTER der Gold-Anzeige verringern */
+    .big-gold-display {
+        margin-bottom: 4px !important; /* War vorher ca. 10px */
+    }
+
+    /* 2. Abstand ÜBER dem Spiel-Block entfernen */
+    #game-wrapper {
+        margin-top: 0 !important;
+    }
 }
 
 
