@@ -1194,34 +1194,49 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         border-bottom: 2px solid rgba(255,255,255,0.1);
     }
 
-    /* 4. TOOL BUTTONS (Die Quadrate unten): Richtig drückbar machen */
+    /* 4. TOOL BUTTONS: Kompakte 4-Spalten-Ansicht */
     #tool-shop {
-        width: 95% !important;
+        width: 96% !important; /* Maximale Breite nutzen */
         display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important; /* 2 pro Reihe oder ändere auf 3 */
-        gap: 12px !important;
-        padding-bottom: 80px !important; /* Platz für Nav */
+        /* Wir wechseln von 2 auf 4 Spalten, damit alle Buffs in eine Zeile passen */
+        grid-template-columns: repeat(4, 1fr) !important; 
+        gap: 8px !important; /* Etwas kleinerer Abstand */
+        padding-bottom: 80px !important;
     }
 
-    .tool-btn {
+    /* Der Upgrade Button (Grün) bleibt riesig und nimmt die ganze Breite ein */
+    #btn-pick { 
+        grid-column: span 4 !important; 
         height: 60px !important;
-        border-radius: 16px !important; /* Rund */
-        border: none !important;
-        
-        /* Der 3D Effekt Trick */
-        box-shadow: 
-            inset 0 2px 0 rgba(255,255,255,0.2), /* Glanz oben */
-            0 6px 0 rgba(0,0,0,0.3) !important; /* Schatten/Tiefe unten */
-            
-        border-bottom: 6px solid rgba(0,0,0,0.2) !important; /* Physische Dicke */
-        
-        transform: translateY(0);
-        transition: all 0.1s cubic-bezier(0.4, 0, 1, 1);
-        font-family: 'Press Start 2P', cursive !important;
-        font-size: 10px !important;
-        text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+        font-size: 12px !important;
     }
 
+    /* Die 4 Buff-Buttons in EINER REIHE (jeder nimmt 1 Spalte) */
+    #btn-tnt, #btn-pot-str, #btn-pot-min, #btn-pot-od {
+        grid-column: span 1 !important; /* Zwingt sie nebeneinander */
+        height: 55px !important; /* Etwas kompakter */
+        padding: 4px 1px !important; /* Wenig Padding damit Text passt */
+        font-size: 8px !important; /* Schrift kleiner, damit "Robo-Öl" passt */
+        line-height: 1.2 !important;
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        white-space: normal !important; /* Textumbruch erlauben */
+    }
+
+    /* Spezielle Anpassung für OVERDRIVE, damit es nicht platzt */
+    #btn-pot-od {
+        font-size: 7.5px !important; /* Muss sehr klein sein für 1 Zeile */
+        letter-spacing: -0.5px;
+    }
+
+    /* Preise kleiner machen */
+    .tool-btn small {
+        font-size: 7px !important;
+        margin-top: 2px;
+        opacity: 0.8;
+    }
+    
     /* Wenn man drückt: Button geht runter, Schatten verschwindet */
     .tool-btn:active {
         transform: translateY(6px) !important;
