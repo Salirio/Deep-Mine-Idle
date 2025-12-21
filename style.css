@@ -1322,42 +1322,34 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
 
     @media (max-width: 900px) {
 
-    /* --- 1. GRUNDGERÜST (Kein Scrollen am Body) --- */
+    /* --- 1. GRUNDGERÜST --- */
     html, body {
         position: fixed; 
-        width: 100%; 
-        height: 100%;
-        overflow: hidden; /* Verhindert das "Gummiband"-Scrollen der ganzen Seite */
+        width: 100%; height: 100%;
+        overflow: hidden; 
         margin: 0; padding: 0;
         background-color: #1a1a1a !important;
     }
 
-    /* Der Hauptcontainer füllt den Screen exakt aus */
     #main-container {
         width: 100% !important;
-        height: 100dvh !important; /* Dynamische Viewport-Höhe */
+        height: 100dvh !important;
         padding: 0 !important;
         margin: 0 !important;
         display: flex;
-        flex-direction: column; /* Stapelt Elemente vertikal */
+        flex-direction: column;
         align-items: center;
-        /* WICHTIG: Padding für Notch oben und Nav unten */
         padding-top: env(safe-area-inset-top) !important;
         padding-bottom: calc(65px + env(safe-area-inset-bottom)) !important; 
         box-sizing: border-box;
     }
 
-    /* --- 2. HEADER BEREICH (Logo, Avatar, Stoff) --- */
-    
-    /* Container für Avatar & Stoff (Damit sie nicht schweben) */
-    /* Wir nutzen relative Positionierung im Header-Bereich */
-    
+    /* --- 2. HEADER (Logo, Avatar, Stoff) --- */
     #avatar-btn {
         position: fixed !important;
         top: calc(10px + env(safe-area-inset-top)) !important;
         left: 10px !important;
-        width: 40px !important;
-        height: 40px !important;
+        width: 40px !important; height: 40px !important;
         z-index: 1000 !important;
         border: 2px solid #fff !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.5) !important;
@@ -1366,60 +1358,29 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     #fabric-display-container {
         position: fixed !important;
         top: calc(10px + env(safe-area-inset-top)) !important;
-        right: 10px !important;
-        left: auto !important;
-        width: 40px !important;
-        height: 40px !important;
+        right: 10px !important; left: auto !important;
+        width: 40px !important; height: 40px !important;
         z-index: 1000 !important;
         border: 2px solid #fff !important;
         background: #34495e !important;
     }
 
-    /* Das Logo in der Mitte */
     .logo-container {
         width: 100% !important;
-        height: 50px !important; /* Feste Höhe */
-        min-height: 50px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+        height: 50px !important; min-height: 50px !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
         background: #2c3e50 !important;
-        border: none !important;
-        border-bottom: 4px solid #1a252f !important;
-        border-radius: 0 !important; /* Eckig lassen, sieht sauberer aus oben */
-        margin: 0 !important;
-        padding: 0 !important;
-        flex-shrink: 0; /* Darf nicht kleiner werden */
-        z-index: 500;
+        border: none !important; border-bottom: 4px solid #1a252f !important;
+        border-radius: 0 !important;
+        margin: 0 !important; padding: 0 !important;
+        flex-shrink: 0; z-index: 500;
     }
     
     .arcade-title {
-        font-size: 14px !important; /* Kleiner, damit es zwischen die Buttons passt */
-        margin-top: 5px !important;
+        font-size: 14px !important; margin-top: 5px !important;
     }
 
-    /* --- 3. SCROLL-BEREICH (Die Mitte) --- */
-    
-    /* Linke Spalte (Game) und Rechte Spalte (Listen) verhalten sich gleich */
-    #left-col, #right-col {
-        flex: 1; /* Nimmt den restlichen Platz ein */
-        width: 100% !important;
-        overflow-y: auto; /* Nur HIER wird gescrollt */
-        overflow-x: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px !important;
-        padding-bottom: 20px !important; /* Kleiner Abstand unten */
-        box-sizing: border-box;
-    }
-
-    /* Verstecke Desktop-Elemente sauber */
-    .hud-btn, .right-col-tabs, .desktop-only { 
-        display: none !important; 
-    }
-
-    /* --- 4. GAME ELEMENTE (Dig Screen) --- */
+    /* --- 3. GAME AREA (DIG SCREEN) --- */
     
     .big-gold-display {
         width: 95% !important;
@@ -1427,88 +1388,86 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         flex-shrink: 0;
     }
 
+    /* !!! HIER IST DIE ÄNDERUNG: GRÖSSERER BLOCK !!! */
     #game-wrapper {
-        width: 280px !important;
-        height: 280px !important;
-        margin: 10px auto !important;
-        flex-shrink: 0; /* Verhindert Stauchen auf kleinen Handys */
+        width: 340px !important;  /* War 280px, jetzt größer */
+        height: 340px !important; /* War 280px, jetzt größer */
+        /* Falls das Handy sehr klein ist, maximal 90% der Breite nutzen: */
+        max-width: 90vw !important; 
+        max-height: 90vw !important;
+        
+        margin: 15px auto !important; /* Etwas mehr Abstand */
+        flex-shrink: 0;
     }
 
     #tool-shop {
         width: 95% !important;
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important;
+        display: grid !important; grid-template-columns: repeat(4, 1fr) !important;
         gap: 5px !important;
-        padding-bottom: 0 !important; /* Kein riesiges Padding mehr nötig */
-        margin-bottom: 10px !important;
+        padding-bottom: 0 !important; margin-bottom: 10px !important;
         flex-shrink: 0;
     }
 
-    /* Buttons kompakt machen */
     .tool-btn {
-        padding: 5px 2px !important;
-        font-size: 9px !important;
-        min-height: 45px !important;
+        padding: 5px 2px !important; font-size: 9px !important; min-height: 45px !important;
     }
     #btn-pick { grid-column: span 4 !important; height: 50px !important; font-size: 12px !important; }
     #btn-tnt, #btn-pot-str, #btn-pot-min, #btn-pot-od { grid-column: span 1 !important; }
 
-    /* --- 5. LISTEN (Crew, Skills, Shop) --- */
-    
-    /* Listen sollen den Scroll-Container füllen */
+    /* --- 4. LISTEN & SCROLLING --- */
+    #left-col, #right-col {
+        flex: 1; width: 100% !important;
+        overflow-y: auto; overflow-x: hidden;
+        display: flex; flex-direction: column; align-items: center;
+        padding: 10px !important; padding-bottom: 20px !important;
+        box-sizing: border-box;
+    }
+
     #miner-list, #click-list, .shop-grid {
-        width: 100% !important;
-        padding-bottom: 20px !important; /* Normaler Abstand */
+        width: 100% !important; padding-bottom: 20px !important;
     }
 
     .miner-card {
-        width: 95% !important;
-        margin: 5px auto !important;
-        height: auto !important;
-        min-height: 60px !important;
+        width: 95% !important; margin: 5px auto !important;
+        height: auto !important; min-height: 60px !important;
     }
 
-    /* --- 6. NAVIGATION UNTEN --- */
-    
+    /* Verstecke Desktop-Elemente */
+    .hud-btn, .right-col-tabs, .desktop-only { display: none !important; }
+
+    /* --- 5. NAVIGATION --- */
     #mobile-bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: calc(60px + env(safe-area-inset-bottom)) !important;
+        position: fixed; bottom: 0; left: 0;
+        width: 100%; height: calc(60px + env(safe-area-inset-bottom)) !important;
         padding-bottom: env(safe-area-inset-bottom) !important;
-        background: #111 !important;
-        border-top: 2px solid #333 !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: space-around;
-        z-index: 2000;
-        box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+        background: #111 !important; border-top: 2px solid #333 !important;
+        display: flex !important; align-items: center; justify-content: space-around;
+        z-index: 2000; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
     }
 
     .mobile-nav-item {
-        flex: 1;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        flex: 1; height: 100%;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
     }
 
-    /* --- 7. MODALS (Popups) FIXEN --- */
+    /* --- 6. MODALS FIX (ZENTRIERUNG) --- */
+    /* Wir zwingen das Overlay, ein Flex-Container zu sein, der alles mittig hält */
     .modal-overlay {
-        align-items: center !important; /* Zentrieren */
+        display: flex !important; /* Erzwingt Flexbox, falls JS nur 'block' setzt */
+        justify-content: center !important; /* Horizontal mittig */
+        align-items: center !important;     /* Vertikal mittig */
         padding: 20px !important;
-        z-index: 3000 !important; /* Über die Nav */
+        z-index: 3000 !important;
     }
     
     .modal-content {
-        max-height: 80vh !important; /* Nicht höher als 80% des Screens */
-        overflow-y: auto !important; /* Inhalt scrollbar machen */
-        margin-bottom: 0 !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+        margin: 0 !important; /* Kein margin, Flexbox kümmert sich um die Position */
+        align-self: center !important; /* Sicherstellen, dass es sich selbst zentriert */
     }
     
-    /* Player Modal Layout Reset */
+    /* Player Modal Layout */
     .mobile-player-layout { display: flex; flex-direction: column; width: 100%; }
     .mobile-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     #player-name-input { width: 60% !important; }
