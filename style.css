@@ -1244,6 +1244,16 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     #game-wrapper {
         margin-top: 0 !important;
     }
+    #fabric-display-container {
+        /* Links loslassen */
+        left: auto !important;
+        
+        /* Rechts andocken */
+        right: 10px !important;
+        
+        /* Auf gleiche Höhe wie der Avatar setzen */
+        top: 10px !important; 
+    }
 }
 
 
