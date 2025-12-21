@@ -1116,121 +1116,17 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     box-shadow: 0 4px 0 rgba(0,0,0,0.5);
 }
 /* --- FIX: SCROLL PADDING UNTEN --- */
-/* Damit der letzte Bot nicht von der Navigationsleiste verdeckt wird */
 #miner-list, 
-#click-list,     /* Auch für die Skills-Liste wichtig! */
-#left-col,       /* Für die Dig-Ansicht (Tool Shop Buttons) */
-.shop-grid {     /* Für den Item-Shop */
+#click-list, 
+#left-col, 
+.shop-grid { 
     padding-bottom: 85px !important; 
-
-    /* 1. Tool Shop: Alles in eine Reihe */
-    #tool-shop {
-        /* 4 Spalten erzwingen */
-        grid-template-columns: repeat(4, 1fr) !important; 
-        gap: 6px !important;
-        width: 96% !important;
-        margin: 0 auto 10px auto !important;
-    }
-
-    /* Der Pickaxe Button oben drüber (volle Breite) */
-    #btn-pick {
-        grid-column: 1 / -1 !important; /* Spannt über alle 4 Spalten */
-        margin-bottom: 5px !important;
-        padding: 10px !important;
-        font-size: 14px !important;
-    }
-
-    /* Die kleinen Buttons anpassen */
-    .tool-btn {
-        min-height: 45px !important; /* Kompakte Höhe */
-        padding: 2px !important;
-        font-size: 9px !important; /* Schrift kleiner damit es passt */
-        line-height: 1.2;
-    }
-    
-    /* Overdrive war vorher 2 Spalten breit, jetzt nur noch 1 */
-    #btn-pot-od {
-        grid-column: auto !important; 
-        border: none !important; /* Alten Border Reset */
-        border-bottom: 6px solid #d35400 !important; /* 3D Look wiederherstellen */
-    }
-
-    /* Preise etwas kleiner machen, damit sie reinpassen */
-    .tool-btn small {
-        font-size: 8px !important;
-        display: block;
-        margin-top: 2px;
-    }
-
-    /* 2. GAME BLOCK GRÖSSER MACHEN */
-    #game-wrapper {
-        /* Vorher war es ca 260px, jetzt nutzen wir den Platz! */
-        width: 310px !important; 
-        height: 310px !important;
-        margin-bottom: 5px !important;
-    }
-    
-    /* Gold Anzeige etwas kompakter machen, damit Platz ist */
-    .big-gold-display {
-        margin-bottom: 5px !important;
-        padding: 5px !important;
-    }
-    .gold-icon-big { font-size: 20px !important; }
-    .gold-text-big { font-size: 18px !important; }
-}
-#game-wrapper {
-        width: 96% !important;        /* Exakt so breit wie der Shop darunter */
-        height: auto !important;      /* Höhe automatisch... */
-        aspect-ratio: 1 / 1 !important; /* ...aber immer quadratisch bleiben! */
-        margin: 10px auto !important; /* Etwas Luft nach oben/unten */
-        box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important; /* Fetter Schatten */
-    }
-
-    /* Damit das Bild im Block scharf bleibt */
-    #gameCanvas {
-        width: 100% !important;
-        height: 100% !important;
-        border-radius: 8px !important; /* Ecken leicht abrunden passend zum UI */
-    }
-    
-    /* 2. Tool Shop Container (zur Sicherheit nochmal definiert) */
-    #tool-shop {
-        width: 96% !important;
-        margin: 0 auto 20px auto !important;
-        gap: 8px !important; /* Etwas mehr Luft zwischen den Buttons */
-    }
-
-    /* 3. Der 3D Button Look (Fett & Klickbar) */
-    /* Dies gilt für ALLE Buttons im Shop (auch "MAX") */
-    .tool-btn, #btn-pick {
-        border-radius: 8px !important;
-        border: none !important;
-        
-        /* Der 3D-Effekt: Dicker unterer Rand */
-        border-bottom: 6px solid rgba(0,0,0,0.4) !important; 
-        
-        /* Verschiebung, damit Text mittig wirkt trotz dickem Rand */
-        padding-top: 4px !important; 
-        padding-bottom: 0px !important; 
-        
-        transition: all 0.05s !important;
-        position: relative !important;
-        top: 0px !important;
-    }
-
-    /* Wenn man draufdrückt: Button geht runter, Rand verschwindet */
-    .tool-btn:active, #btn-pick:active {
-        border-bottom-width: 0px !important; /* Rand weg */
-        border-top: 6px solid transparent !important; /* Platzhalter damit er nicht springt */
-        top: 6px !important; /* Button bewegt sich physisch nach unten */
-        transform: scale(0.98) !important; /* Leichtes Schrumpfen für Feedback */
-    }
 }
 
-/* --- NEUER 3D BUTTON STYLE --- */
+/* --- NEUER 3D BUTTON STYLE (GLOBAL) --- */
 .tool-btn, #btn-pick {
     position: relative;
-    border: none !important; /* Standard Border weg */
+    border: none !important;
     border-radius: 8px !important;
     /* Dickerer unterer Rand für 3D Effekt */
     border-bottom: 6px solid rgba(0,0,0,0.3) !important; 
@@ -1244,18 +1140,83 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
 /* Der Drück-Effekt */
 .tool-btn:active, #btn-pick:active {
     border-bottom-width: 0px !important; /* Rand "verschwindet" */
-    box-shadow: inset 0 4px 4px rgba(0,0,0,0.2) !important; /* Schatten geht nach innen */
+    box-shadow: inset 0 4px 4px rgba(0,0,0,0.2) !important; /* Schatten nach innen */
     top: 6px !important; /* Button bewegt sich physisch nach unten */
-    transform: none !important; /* Altes Wackeln deaktivieren */
+    transform: none !important;
 }
 
-/* Farben beibehalten (Basierend auf IDs) */
+/* Farben beibehalten */
 #btn-pick { background: #2ecc71; border-bottom-color: #27ae60 !important; }
 #btn-tnt { background: #e74c3c; border-bottom-color: #c0392b !important; }
 #btn-pot-str { background: #9b59b6; border-bottom-color: #8e44ad !important; }
 #btn-pot-min { background: #00d2d3; border-bottom-color: #00a8ff !important; }
 #btn-pot-od { background: #e67e22; border-bottom-color: #d35400 !important; }
+}
 
+/* --- MOBILE OPTIMIERUNG (FINAL) --- */
+@media (max-width: 900px) {
+    
+    /* 1. Tool Shop: Alles in eine Reihe (4 Spalten) */
+    #tool-shop {
+        grid-template-columns: repeat(4, 1fr) !important; 
+        gap: 6px !important;
+        width: 96% !important;
+        margin: 0 auto 10px auto !important;
+    }
+
+    /* Der Pickaxe Button oben drüber (volle Breite) */
+    #btn-pick {
+        grid-column: 1 / -1 !important; 
+        margin-bottom: 5px !important;
+        padding: 10px !important;
+        font-size: 14px !important;
+    }
+
+    /* Kompakte Buttons */
+    .tool-btn {
+        min-height: 45px !important;
+        padding: 2px !important;
+        font-size: 9px !important;
+        line-height: 1.2;
+    }
+    
+    /* Overdrive in die Reihe zwingen */
+    #btn-pot-od {
+        grid-column: auto !important; 
+    }
+
+    /* Preise kleiner */
+    .tool-btn small {
+        font-size: 8px !important;
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* 2. GAME BLOCK: MASSIV & QUADRATISCH */
+    #game-wrapper {
+        width: 96% !important;        /* Exakt so breit wie der Shop */
+        height: auto !important;      
+        aspect-ratio: 1 / 1 !important; /* Erzwingt Quadrat */
+        margin: 10px auto !important; 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important;
+    }
+
+    /* Canvas Schärfe */
+    #gameCanvas {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Gold Anzeige anpassen */
+    .big-gold-display {
+        width: 96% !important;
+        margin: 0 auto 5px auto !important;
+        padding: 5px !important;
+    }
+    .gold-icon-big { font-size: 20px !important; }
+    .gold-text-big { font-size: 18px !important; }
+}
 
 
 
