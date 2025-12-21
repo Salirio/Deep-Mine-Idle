@@ -738,11 +738,6 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         overflow: hidden !important; margin: 0 !important; padding: 0 !important;
     }
 
-    #main-container {
-        width: 100% !important; height: calc(100vh - 65px) !important;
-        padding: 0 !important; margin: 0 !important;
-        display: flex; flex-direction: column;
-    }
 
     #left-col { width: 100% !important; padding: 5px !important; overflow-y: auto; }
     #right-col { display: none; width: 100% !important; padding: 5px !important; }
@@ -1125,14 +1120,6 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         background-color: #1a1a1a !important;
     }
 
-    #main-container {
-        padding: 10px !important;
-        gap: 15px !important;
-        display: flex;
-        flex-direction: column;
-        align-items: center; /* Alles zentrieren */
-    }
-
     /* 2. HEADER (Wie in der Skizze oben: Avatar links, Titel rechts) */
     .logo-container {
         width: 100% !important;
@@ -1334,16 +1321,50 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     }
 
     #main-container {
-        height: 100vh !important; /* Volle Höhe erzwingen */
-        overflow: hidden !important;
+    /* Volle Bildschirmhöhe nutzen */
+        height: 100vh !important; 
+        height: 100dvh !important; /* Besser für mobile Browser */
+        
+        /* Breite begrenzen, damit am Rand nichts abgeschnitten wird */
+        width: 100% !important;
+        
+        /* WICHTIG: Oben Platz für Notch, Unten Platz für Nav-Leiste */
+        padding-top: calc(10px + env(safe-area-inset-top)) !important; 
+        padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important; 
+        
+        /* Alles zentrieren */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        
+        box-sizing: border-box !important;
+        overflow: hidden !important; /* Kein Scrollen des ganzen Containers */
+        margin: 0 !important;
     }
-    #main-container {
-    height: calc(100dvh - 75px);
-    padding-top: env(safe-area-inset-top);
-    box-sizing: border-box;
-    overflow: hidden;
+    #miner-list, 
+    #click-list,     
+    #left-col,       
+    .shop-grid {     
+    padding-bottom: 150px !important; /* Deutlich mehr Platz (war 85px) */
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch; /* Weiches Scrollen auf iOS */
+    }
+
+    /* Tool Shop (Dig Seite) Grid Fix */
+    #tool-shop {
+    width: 96% !important;
+    padding-bottom: 120px !important; /* Damit Overdrive nicht verdeckt wird */
+    margin-bottom: 0 !important;
+    }
+    #mobile-bottom-nav {
+    height: calc(65px + env(safe-area-inset-bottom)) !important; /* Höhe passt sich an */
+    padding-bottom: env(safe-area-inset-bottom) !important; /* Buttons rutschen hoch */
+    background: #111 !important;
+    border-top: 2px solid #333 !important;
+    z-index: 2000000;
+   }
 }
-}
+
 
 
 
