@@ -1329,8 +1329,8 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
         width: 100% !important;
         
         /* WICHTIG: Oben Platz für Notch, Unten Platz für Nav-Leiste */
-        padding-top: calc(10px + env(safe-area-inset-top)) !important; 
-        padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important; 
+        padding-top: calc(50px + env(safe-area-inset-top)) !important; 
+        padding-bottom: 0 !important;
         
         /* Alles zentrieren */
         display: flex !important;
@@ -1353,7 +1353,7 @@ canvas { display: block; background: #111; -webkit-tap-highlight-color: transpar
     /* Tool Shop (Dig Seite) Grid Fix */
     #tool-shop {
     width: 96% !important;
-    padding-bottom: 120px !important; /* Damit Overdrive nicht verdeckt wird */
+    padding-bottom: 300px !important; /* Damit Overdrive nicht verdeckt wird */
     margin-bottom: 0 !important;
     }
     #mobile-bottom-nav {
